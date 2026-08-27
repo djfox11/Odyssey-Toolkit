@@ -1,0 +1,43 @@
+name: Release hygiene
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Parse Python sources
+        run: python -m compileall -q smo_kingdom_importer tests tools
+
+      - name: Validate source and test inventory
+        run: python tests/release_hygiene.py
+
+      - name: Build deterministic release archives
+        run: python tools/build_release.py
+
+      - name: Validate built archive
+        run: python tests/release_hygiene.py --zip dist/odyssey_toolkit.zip
+
+      - name: Upload candidate archives
+        uses: actions/upload-artifact@v7
+        with:
+          name: odyssey-toolkit-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14

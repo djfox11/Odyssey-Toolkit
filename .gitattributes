@@ -8,3 +8,7 @@
 *.whl binary
 *.docx binary
 *.zip binary
+*.yml text eol=lf
+*.yaml text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf

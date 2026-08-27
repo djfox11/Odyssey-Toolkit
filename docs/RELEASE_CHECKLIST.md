@@ -4,10 +4,11 @@ This is the bounded acceptance contract for 1.0. New capabilities discovered dur
 
 ## Automated gates
 
+- Require the Release hygiene workflow on main to pass.
 - Run python tools/build_release.py.
 - Run the complete 38-script Blender matrix through tests/release_hygiene.py --run using Blender 4.5 LTS and a valid ROMFS.
 - Preserve the resulting console output with the release candidate.
-- Require matching source, manifest, wheel, and ZIP versions.
+- Require matching source, manifest, wheel, ZIP, changelog, and Git tag versions.
 - Require a clean register/unregister cycle and no unlisted headless test.
 
 ## Clean-profile gates
@@ -34,4 +35,7 @@ This is the bounded acceptance contract for 1.0. New capabilities discovered dur
 - Run a small external beta on the release-candidate ZIP.
 - Block release for installation failure, crash, data corruption, unusable primary workflow, or silent unsupported-format failure.
 - Fix release blockers only during the candidate period.
-- Tag the exact final source as v1.0.0 and archive the validated ZIP, test output, and benchmark summary.
+- Do not create v1.0.0 until every automated, clean-profile, interactive, and beta gate passes.
+- Update the manifest, Python version tuple, and changelog together, then tag the exact validated source as v1.0.0.
+- Let the tag workflow create the private draft release; verify its SHA-256 checksum and attached ZIP before publishing.
+- Archive the Blender matrix output and benchmark summary with the release record.

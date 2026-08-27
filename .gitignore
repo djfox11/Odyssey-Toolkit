@@ -16,3 +16,8 @@ smo_kingdom_importer_v0.36.3/
 Guide.docx
 ShineTowerTotalCount_21.png
 trees.txt
+*.blend
+*.blend1
+*.blend2
+*.blend@
+release-test-output/

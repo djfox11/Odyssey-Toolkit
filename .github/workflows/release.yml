@@ -1,0 +1,51 @@
+name: Prepare 1.x release draft
+
+on:
+  push:
+    tags:
+      - "v1.*"
+
+permissions:
+  contents: write
+
+jobs:
+  draft-release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Verify tag matches extension version
+        run: python tools/check_release_tag.py "$env:GITHUB_REF_NAME"
+
+      - name: Validate and build release
+        run: |
+          python -m compileall -q smo_kingdom_importer tests tools
+          python tests/release_hygiene.py
+          python tools/build_release.py
+
+      - name: Write checksum
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          $archive = "dist/odyssey_toolkit_v$version.zip"
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash.ToLowerInvariant()
+          "$hash  odyssey_toolkit_v$version.zip" | Set-Content -Encoding ascii dist/SHA256SUMS.txt
+
+      - name: Create private draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          gh release create $env:GITHUB_REF_NAME `
+            "dist/odyssey_toolkit_v$version.zip" `
+            "dist/SHA256SUMS.txt" `
+            --draft `
+            --generate-notes `
+            --title "Odyssey Toolkit $version"
