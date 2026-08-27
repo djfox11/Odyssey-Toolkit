@@ -1,35 +1,98 @@
+<div align="center">
+
 # Odyssey Toolkit
 
-Odyssey Toolkit is a Blender extension for reconstructing and inspecting
-user-extracted Super Mario Odyssey content. It combines stage and scenario
-importing, standalone BFRES assets, native animations and cameras, material
-reconstruction, lighting, rigging, and import diagnostics in one Odyssey-focused
-workspace.
+**[Installation](#installation) · [Tookit](#one-toolkit-four-workflows) · [Quick start](#your-first-import) · [Feedback](#feedback)**
+
+</div>
+
+Odyssey Toolkit is a Blender extension for reconstructing and inspecting content from *Super Mario Odyssey*. It brings kingdom stages, assets, animations, cameras, materials, lighting and rigging straight into Blender with no outside conversion needed.
+
+> [!IMPORTANT]
+> Odyssey Toolkit does **not** include game assets, encryption keys, ROMFS data, or
+> tools for obtaining them. The addon requires that you legally obtain the game files
+
+## One Toolkit, Four Workflows
+| Workflow | What it does |
+| :-- | :-- |
+| **Stage Importer** | Reconstructs scenarios, zones, placements, geometry, materials, textures, sky and approximate lighting. |
+| **Asset Importer** | Opens standalone SZS and BFRES model packages without requiring a stage import. |
+| **Animation Tools** | Imports support skeletal, material, visibility, and camera animation to Blender-native data. |
+| **Diagnostics** | Shows model imports, fallbacks, warnings, performance information, cache state instead of silently failing. |
+
+The Toolkit reads `SZS/Yaz0`, `SARC`, `BYML`, `BFRES`, and `BTNX` directly and creates editable Blender objects, materials, images, armatures, actions, and cameras.
 
 ## Requirements
 
 - Blender 4.5 LTS
-- Windows x64
-- A legally obtained, user-extracted Super Mario Odyssey ROMFS for stage workflows
-
-The required `oead` Python wheel is bundled with the extension. No game assets,
-keys, ROMFS data, or tools for obtaining them are included.
+- Windows 10/11 x64
+- Super Mario Odyssey ROMFS
 
 ## Installation
 
-1. Download the versioned ZIP from this repository's **Releases** page.
-2. In Blender, open **Edit > Preferences > Get Extensions**.
-3. Choose **Install from Disk** and select the downloaded ZIP.
-4. Open the **Odyssey** tab in the 3D View sidebar.
+1. Open the repo's **[Releases](https://github.com/djfox11/Odyssey-Toolkit/releases)** page.
+2. Download the ZIP archive named `odyssey_toolkit_v0.40.0.zip`.
+3. In Blender, open **Edit → Preferences → Get Extensions**.
+4. Open the top-right menu and choose **Choose fro Disk...** and select the downloaded ZIP.
+5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.
 
-The complete workflow guide and compatibility notes are included in
-[`smo_kingdom_importer/README.md`](smo_kingdom_importer/README.md).
+> [!TIP]
+> The compatible `oead` Python wheel is already bundled. You do not need to install the Python package into Blender manually.
 
-## Release status
+# Your First Import
 
-Version 0.40 is the stabilization beta for 1.0. It is intended for clean-install,
-real-ROMFS, and production-project feedback. The supported 1.0 scope is dependable
-stage reconstruction, standalone asset inspection, animations, cameras, and clear
-diagnostics when exact reconstruction is unavailable.
+```text
+Odyssey tab
+└── Stage Importer
+    ├── Source → choose your extracted romfs folder
+    ├── Stage → choose a kingdom stage
+    ├── Scenario → choose the scenario to reconstruct
+    └── Import Stage
+```
 
-Odyssey Toolkit is licensed under GPL-2.0-only. See [LICENSE](LICENSE).
+1. Select a ROMFS containing `SystemData\WorldList.szs`, `StageData`, and `ObjectData`.
+2. Choose a stage and scenario.
+3. Adjust import categories or optional stage lighting if needed.
+4. Select **Import Stage**.
+5. Watch progress in the panel and Blender status bar; use <kbd>Esc</kbd> to cancel the import.
+
+For individual files, expand **Assets & Animations** and choose **Import Standalone Model**.
+
+## Current Scope
+
+**In the 1.0 scope:**
+- Stage and scenario reconstruction
+- Standalone model importing
+- Support for rigs
+- Skeletal, material and camera animations
+
+**Outside the 1.0 scope:**
+- Runtime-created actors and game logic
+- Particle system recreation
+- Exact shader parity
+- Cubemaps
+- Texture arrays and shape animation
+- Additional OSes and Blender versions
+
+## Feedback
+
+Use beta reports include:
+- Blender version and Windows version
+- The workflow and stage or asset involved
+- Exact reproduction steps
+- Diagnostics summary
+
+Please do not attach ROMFS files, extracted game assets, encryption keys, or complete `.blend` projects containing the game data.
+
+## License 
+
+Odyssey Toolkit is distributed under the **GNU General Public License v2.0 only**.
+See [LICENSE](LICENSE) for the complete terms.
+
+---
+
+<div align="center">
+
+*\~Built my djfox11~*
+
+</div>
