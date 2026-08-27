@@ -21,7 +21,7 @@ from bpy.types import AddonPreferences, Operator, Panel, PropertyGroup
 bl_info = {
     "name": "Odyssey Toolkit",
     "author": "djfox11",
-    "version": (0, 40, 0),
+    "version": (0, 41, 0),
     "blender": (4, 5, 0),
     "location": "3D Viewport > Sidebar > Odyssey",
     "description": (
@@ -32,6 +32,8 @@ bl_info = {
 
 
 ADDON_DIR = Path(__file__).resolve().parent
+STORAGE_DIRECTORY_NAME = "odyssey_toolkit"
+LEGACY_STORAGE_DIRECTORY_NAME = "smo_kingdom_importer"
 SCENARIO_PREVIEW_DIR = ADDON_DIR / "previews" / "scenarios"
 MISSING_SCENARIO_PREVIEW_PATH = SCENARIO_PREVIEW_DIR / "_scenario.png"
 PREVIEW_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
@@ -550,12 +552,28 @@ def restore_saved_romfs_path(settings: "SMOProperties") -> bool:
 
 
 def actor_registry_cache_directory(*, create: bool = False) -> Path:
-    cache_path = bpy.utils.user_resource(
-        "CONFIG",
-        path="smo_kingdom_importer/actor_registry",
-        create=create,
+    cache_path = Path(
+        bpy.utils.user_resource(
+            "CONFIG",
+            path=f"{STORAGE_DIRECTORY_NAME}/actor_registry",
+            create=False,
+        )
     )
-    return Path(cache_path)
+    legacy_cache_path = Path(
+        bpy.utils.user_resource(
+            "CONFIG",
+            path=f"{LEGACY_STORAGE_DIRECTORY_NAME}/actor_registry",
+            create=False,
+        )
+    )
+
+    if not cache_path.exists() and legacy_cache_path.exists():
+        return legacy_cache_path
+
+    if create:
+        cache_path.mkdir(parents=True, exist_ok=True)
+
+    return cache_path
 
 
 def texture_cache_directory(
@@ -570,15 +588,28 @@ def texture_cache_directory(
 
     if custom_parent:
         parent = Path(bpy.path.abspath(custom_parent)).expanduser().resolve()
-        cache_path = parent / "smo_kingdom_importer" / "texture_cache"
+        cache_path = parent / STORAGE_DIRECTORY_NAME / "texture_cache"
+        legacy_cache_path = (
+            parent / LEGACY_STORAGE_DIRECTORY_NAME / "texture_cache"
+        )
     else:
         cache_path = Path(
             bpy.utils.user_resource(
                 "DATAFILES",
-                path="smo_kingdom_importer/texture_cache",
+                path=f"{STORAGE_DIRECTORY_NAME}/texture_cache",
                 create=False,
             )
         )
+        legacy_cache_path = Path(
+            bpy.utils.user_resource(
+                "DATAFILES",
+                path=f"{LEGACY_STORAGE_DIRECTORY_NAME}/texture_cache",
+                create=False,
+            )
+        )
+
+    if not cache_path.exists() and legacy_cache_path.exists():
+        cache_path = legacy_cache_path
 
     if create:
         from .texture_cache import ensure_texture_cache_root
@@ -702,7 +733,7 @@ class SMOAddonPreferences(AddonPreferences):
         name="Cache Parent Folder",
         description=(
             "Optional parent folder; the add-on creates its dedicated "
-            "smo_kingdom_importer/texture_cache directory inside it"
+            "odyssey_toolkit/texture_cache directory inside it"
         ),
         subtype="DIR_PATH",
         default="",
