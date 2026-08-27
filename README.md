@@ -86,7 +86,7 @@ Please do not attach ROMFS files, extracted game assets, encryption keys, or com
 
 ## License 
 
-Odyssey Toolkit is distributed under the **GNU General Public License v2.0 only**.
+Odyssey Toolkit is distributed under the **GNU General Public License v2.0 or later.**.
 See [LICENSE](LICENSE) for the complete terms.
 
 ---
