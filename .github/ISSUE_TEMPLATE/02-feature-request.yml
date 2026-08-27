@@ -1,0 +1,61 @@
+name: Request a feature
+description: Suggest an improvement for Odyssey Toolkit
+title: "[Feature]: "
+labels:
+  - "type: enhancement"
+  - "status: needs triage"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Odyssey Toolkit is currently focused on stabilization for 1.0.
+        New capabilities may be assigned to the post-1.0 backlog.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What workflow is difficult or impossible today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+      description: Describe the desired behavior rather than only the UI.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any current workaround.
+
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Related workflow
+      options:
+        - Stage Importer
+        - Standalone Asset Importer
+        - Animation Tools
+        - Materials or textures
+        - Diagnostics
+        - User interface
+        - Installation
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for a similar request.
+          required: true
+        - label: This request does not require distributing game files or keys.
+          required: true
