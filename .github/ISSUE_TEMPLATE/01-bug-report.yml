@@ -93,9 +93,9 @@ body:
     attributes:
       label: Did this work in an earlier version?
       options:
-        - Unknown
-        - No
-        - Yes
+        - "Unknown"
+        - "No"
+        - "Yes"
 
   - type: checkboxes
     id: confirmation
