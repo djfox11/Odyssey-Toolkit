@@ -10,7 +10,7 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 
 > [!IMPORTANT]
 > Odyssey Toolkit does **not** include game assets, encryption keys, ROMFS data, or
-> tools for obtaining them. The addon requires that you legally obtain the game files
+> tools for obtaining them. It is required that you legally obtain a copy of the required game data
 
 ## One Toolkit, Four Workflows
 | Workflow | What it does |
@@ -86,7 +86,7 @@ Please do not attach ROMFS files, extracted game assets, encryption keys, or com
 
 ## License 
 
-Odyssey Toolkit is distributed under the **GNU General Public License v2.0 or later.**.
+Odyssey Toolkit is distributed under the **GNU General Public License v2.0 or later.**
 See [LICENSE](LICENSE) for the complete terms.
 
 ---
