@@ -1,12 +1,21 @@
-name: Prepare 1.x release draft
+name: Prepare tagged release
 
 on:
   push:
     tags:
-      - "v1.*"
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to package, for example v0.40.0"
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   draft-release:
@@ -14,38 +23,43 @@ jobs:
     steps:
       - name: Check out tagged source
         uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
-      - name: Verify tag matches extension version
-        run: python tools/check_release_tag.py "$env:GITHUB_REF_NAME"
-
-      - name: Validate and build release
-        run: |
-          python -m compileall -q smo_kingdom_importer tests tools
-          python tests/release_hygiene.py
-          python tools/build_release.py
-
-      - name: Write checksum
+      - name: Verify tag matches manifest
         shell: pwsh
         run: |
-          $version = $env:GITHUB_REF_NAME.TrimStart('v')
-          $archive = "dist/odyssey_toolkit_v$version.zip"
+          $version = python -c "import pathlib,tomllib; print(tomllib.loads(pathlib.Path('smo_kingdom_importer/blender_manifest.toml').read_text(encoding='utf-8'))['version'])"
+          if ($env:RELEASE_TAG -ne "v$version") {
+            throw "Tag $env:RELEASE_TAG does not match manifest version $version"
+          }
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Package extension and checksum
+        shell: pwsh
+        run: |
+          $stage = Join-Path $env:RUNNER_TEMP "odyssey_toolkit"
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item -Path "smo_kingdom_importer\*" -Destination $stage -Recurse -Force
+          Copy-Item -LiteralPath "LICENSE", "CHANGELOG.md" -Destination $stage
+          $archive = Join-Path $PWD "odyssey_toolkit_v$env:VERSION.zip"
+          Compress-Archive -Path "$stage\*" -DestinationPath $archive -CompressionLevel Optimal
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash.ToLowerInvariant()
-          "$hash  odyssey_toolkit_v$version.zip" | Set-Content -Encoding ascii dist/SHA256SUMS.txt
+          "$hash  odyssey_toolkit_v$env:VERSION.zip" | Set-Content -Encoding ascii SHA256SUMS.txt
 
       - name: Create private draft release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $version = $env:GITHUB_REF_NAME.TrimStart('v')
-          gh release create $env:GITHUB_REF_NAME `
-            "dist/odyssey_toolkit_v$version.zip" `
-            "dist/SHA256SUMS.txt" `
+          gh release create $env:RELEASE_TAG `
+            "odyssey_toolkit_v$env:VERSION.zip" `
+            "SHA256SUMS.txt" `
             --draft `
             --generate-notes `
-            --title "Odyssey Toolkit $version"
+            --title "Odyssey Toolkit $env:VERSION"

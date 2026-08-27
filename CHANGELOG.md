@@ -4,11 +4,9 @@ All notable Odyssey Toolkit releases are documented here.
 
 ## Unreleased
 
-### Release engineering
+### Changed
 
-- Added the root repository guide, contribution policy, security policy, and pull-request checklist.
-- Added Windows/Python 3.11 release-hygiene CI with deterministic candidate artifacts.
-- Added a guarded `v1.*` workflow that verifies the manifest version and creates a private draft release with a SHA-256 checksum.
+- Reduced the repository to the core add-on, release metadata, and one self-contained tagged-release workflow.
 ## 0.40.0 - 2026-08-27
 
 ### Changed

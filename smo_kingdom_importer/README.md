@@ -746,9 +746,6 @@ expansion, ObjectData resolution, SZS/Yaz0/SARC loading, BFRES parsing, BNTX dec
 persistent texture-cache reads and writes, Blender image creation, Blender mesh creation,
 preparation and total import time. Import roots also store `smo_texture_cache` as JSON.
 
-The focused headless benchmark is `tests/performance_benchmark.py`; the lazy StageData
-behavior comparison is `tests/stage_data_lazy_regression.py`.
-
 ## Model resolution report
 
 Run **Export Model Report** from Blender's `F3` operator search to write a JSON file
@@ -764,30 +761,13 @@ ObjectData paths are stored relative to the ROMFS, so the report does not expose
 depend on the user's absolute ROMFS path. Unresolved actors and archives without
 models are also aggregated by actor name.
 
-## 1.0 readiness checklist
+## Current release scope
 
-Completed in the 0.40 stabilization release:
-
-- [x] Public Odyssey Toolkit identity with stable extension and operator identifiers.
-- [x] Stage, asset, animation and diagnostic workflows separated in the interface.
-- [x] Supported custom-normal and armature wording with conservative defaults.
-- [x] Experimental cloth NoV/Fresnel translation gated off by default.
-- [x] Visual stage categories enabled by default and diagnostic-only categories opt-in.
-- [x] Visible selected-import summary and current-stage report in Diagnostics.
-- [x] Self-contained oead wheel for Blender 4.5 LTS on Windows x64.
-- [x] Reproducible ZIP builder, manifest contract, licence and changelog.
-- [x] Explicit 38-script Blender regression inventory and static release hygiene.
-
-Remaining release-candidate gates:
-
-- [ ] Run all 38 headless tests on Blender 4.5 LTS with the development ROMFS.
-- [ ] Validate install, update and uninstall on a clean Blender profile.
-- [ ] Exercise cancellation, re-import and save/reopen on a complete large stage.
-- [ ] Load every kingdom catalogue and complete the representative visual checks in
-  docs/RELEASE_CHECKLIST.md.
-- [ ] Record unsupported BFRES and BNTX formats and confirm each failure is diagnostic.
-- [ ] Run a small external beta and resolve every release-blocking report.
+The 0.40 line is the stabilization beta for 1.0. Its supported scope is dependable
+stage and scenario reconstruction, standalone asset inspection, native skeletal and
+material animation, camera animation, and actionable diagnostics when exact
+reconstruction is unavailable.
 
 Collision, runtime-created actors, particle effects, cubemaps, texture arrays, exact
-game-renderer shader parity, shape animation and additional Blender platforms are
-post-1.0 work. Diagnostic fallbacks for those systems are expected 1.0 behaviour.
+game-renderer shader parity, shape animation, and additional Blender platforms are
+outside the 1.0 scope. Diagnostic fallbacks for those systems are expected behavior.
