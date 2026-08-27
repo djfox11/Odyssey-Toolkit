@@ -235,14 +235,15 @@ def ensure_texture_cache_root(root: Path) -> Path:
 
 def _validate_cache_root(root: Path) -> Path:
     resolved = root.expanduser().resolve()
+    allowed_parent_names = {"odyssey_toolkit", "smo_kingdom_importer"}
 
     if (
         resolved.name != CACHE_DIRECTORY_NAME
-        or resolved.parent.name != "smo_kingdom_importer"
+        or resolved.parent.name not in allowed_parent_names
     ):
         raise ValueError(
-            "Texture cache must be the dedicated "
-            "smo_kingdom_importer/texture_cache directory."
+            "Texture cache must be a dedicated "
+            "odyssey_toolkit/texture_cache directory."
         )
 
     return resolved
@@ -534,7 +535,7 @@ def clear_texture_cache(root: Path) -> bool:
         or marker.read_text(encoding="utf-8") != _CACHE_MARKER_CONTENT
     ):
         raise ValueError(
-            "Refusing to clear a directory without a valid SMO texture "
+            "Refusing to clear a directory without a valid Odyssey Toolkit "
             "cache marker."
         )
 

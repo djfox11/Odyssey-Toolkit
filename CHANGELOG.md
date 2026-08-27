@@ -4,9 +4,15 @@ All notable Odyssey Toolkit releases are documented here.
 
 ## Unreleased
 
+## 0.41.0 - 2026-08-27
+
 ### Changed
 
+- Renamed the extension package and manifest ID from `smo_kingdom_importer` to `odyssey_toolkit` ahead of 1.0.
+- Preserved the established `smo.*` Blender operator IDs and generated scene metadata for compatibility.
+- Updated cache storage, installation guidance, and tagged-release packaging for the Odyssey Toolkit identity while retaining legacy cache discovery.
 - Reduced the repository to the core add-on, release metadata, and one self-contained tagged-release workflow.
+
 ## 0.40.0 - 2026-08-27
 
 ### Changed

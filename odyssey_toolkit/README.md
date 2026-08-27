@@ -68,16 +68,22 @@ than silently discarded.
 4. Restart Blender before importing.
 
 Both `odyssey_toolkit.zip` and a versioned name such as
-`odyssey_toolkit_v0.40.0.zip` are valid distribution filenames. They contain the
-same manifest package ID, `smo_kingdom_importer`; install only one of them. Do not also
+`odyssey_toolkit_v0.41.0.zip` are valid distribution filenames. They contain the
+same manifest package ID, `odyssey_toolkit`; install only one of them. Do not also
 copy an extracted legacy add-on folder into Blender's `scripts/addons` directory.
 
 ### Update
 
-Install the newer ZIP with **Install from Disk...**. Blender identifies the extension
-from its manifest rather than the ZIP filename, so a generic ZIP can replace a versioned
-ZIP and vice versa. If Blender refuses to replace the installed package, remove the old
-copy from the **Installed** extension list, restart Blender, then install the new ZIP.
+Version 0.41.0 changes the manifest package ID. Before upgrading from 0.40.0 or
+earlier, remove **smo_kingdom_importer** from Blender's **Installed** extension list,
+restart Blender, and then install the 0.41.0 ZIP. Existing imported scene data and
+the established `smo.*` operators remain compatible.
+
+For updates from 0.41.0 onward, install the newer ZIP with **Install from Disk...**.
+Blender identifies the extension from its manifest rather than the ZIP filename, so a
+generic ZIP can replace a versioned ZIP and vice versa. If Blender refuses to replace
+the installed package, remove the installed copy, restart Blender, then install the new
+ZIP.
 
 The equivalent Blender 4.5 command-line form is:
 
@@ -92,7 +98,7 @@ details or right-side menu, and choose **Uninstall** or **Remove**. If that cont
 shown, close Blender and use:
 
 ```powershell
-& "<Blender folder>\blender.exe" --command extension remove smo_kingdom_importer
+& "<Blender folder>\blender.exe" --command extension remove odyssey_toolkit
 ```
 
 Restart Blender after removal.
@@ -105,8 +111,8 @@ If behavior does not match the newly installed version:
 2. Remove the extension through Blender or the command above.
 3. Check the following user locations, replacing `<version>` as appropriate:
 
-   - `%APPDATA%\Blender Foundation\Blender\<version>\extensions\user_default\smo_kingdom_importer`
-   - `%APPDATA%\Blender Foundation\Blender\<version>\scripts\addons\smo_kingdom_importer`
+   - `%APPDATA%\Blender Foundation\Blender\<version>\extensions\user_default\odyssey_toolkit`
+   - `%APPDATA%\Blender Foundation\Blender\<version>\scripts\addons\odyssey_toolkit`
 
 4. Remove only leftover directories belonging to this add-on. Do not delete the whole
    Blender version, `extensions`, `scripts` or `addons` directory.
@@ -119,7 +125,7 @@ delete them. Those saved datablocks are scene content, not stale Python add-on f
 ## Structure
 
 ```text
-smo_kingdom_importer/
+odyssey_toolkit/
 |-- __init__.py
 |-- world_list.py
 |-- stage_catalog.py
@@ -715,7 +721,7 @@ entries fall back to direct BNTX decoding without failing the import.
 
 The preferences show the effective folder, texture count and disk usage. An optional
 parent folder can be selected; the extension always creates a dedicated
-`smo_kingdom_importer/texture_cache` child so **Clear Cache** cannot target the selected
+`odyssey_toolkit/texture_cache` child so **Clear Cache** cannot target the selected
 parent itself. Disabling the option stops all cache reads and writes but leaves existing
 entries available for later use. Imported images remain packed into the `.blend` and do
 not depend on the cache after import.
