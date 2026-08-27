@@ -1,0 +1,22 @@
+schema_version = "1.0.0"
+
+id = "smo_kingdom_importer"
+version = "0.40.0"
+name = "Odyssey Toolkit"
+tagline = "Import and inspect Odyssey stages, assets, and animations"
+maintainer = "djfox11"
+type = "add-on"
+
+platforms = ["windows-x64"]
+wheels = [
+    "./wheels/oead-1.2.9.post4-cp311-cp311-win_amd64.whl",
+]
+
+blender_version_min = "4.5.0"
+
+license = [
+    "SPDX:GPL-2.0-or-later",
+]
+
+[permissions]
+files = "Read game data and optionally write a decoded-texture cache"

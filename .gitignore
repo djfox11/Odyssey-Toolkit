@@ -1,0 +1,18 @@
+.venv/
+.codex-temp/
+__pycache__/
+*.py[cod]
+dist/
+smo_kingdom_importer*.zip
+odyssey_toolkit*.zip
+BFRES_ANIMATION_INVENTORY.csv
+BFRES_ANIMATION_INVENTORY.json
+BFRES_ANIMATION_INVENTORY.md
+classification_app/
+resolution_audit/
+smo_kingdom_importer_v0.36.3/
+
+# Local research and legacy authoring artifacts
+Guide.docx
+ShineTowerTotalCount_21.png
+trees.txt

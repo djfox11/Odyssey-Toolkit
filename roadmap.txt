@@ -1,0 +1,47 @@
+ODYSSEY TOOLKIT ROADMAP
+=======================
+
+1.0 RELEASE CANDIDATE
+=====================
+- Run the complete 38-script Blender 4.5 LTS regression matrix
+- Validate clean install, update and uninstall with the bundled oead wheel
+- Complete the bounded interactive checks in docs/RELEASE_CHECKLIST.md
+- Inventory unsupported BFRES and BNTX formats and confirm diagnostic failures
+- Run a small external beta and resolve release-blocking reports
+- Freeze, tag and archive the validated 1.0 source and ZIP
+
+POST-1.0 BACKLOG
+================
+
+RUNTIME CONTENT
+---------------
+- Collision import
+- Runtime-created actors and additional subactor composition
+- Particle and effect reconstruction
+
+RENDERER FIDELITY
+-----------------
+- Cubemaps and texture arrays
+- Environment reflections
+- Procedural water and normal blends
+- Additional vertex-colour influence
+- Image-referenced graduation of the cloth NoV approximation
+
+ANIMATION COVERAGE
+------------------
+- Texture-pattern animation
+- Material-visibility animation
+- Shape animation
+
+PERFORMANCE AND ARCHITECTURE
+----------------------------
+- Native texture decoding where it produces measurable leverage
+- Background or multiprocessing experiments
+- On-disk geometry caches
+- Collection instancing
+- Deeper internal modules after the stable 1.0 interface is proven
+
+PLATFORM COVERAGE
+-----------------
+- Additional operating systems after matching oead wheels and release hosts exist
+- New Blender versions only after a dedicated compatibility pass
