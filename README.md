@@ -2,7 +2,7 @@
 
 # Odyssey Toolkit
 
-**[Installation](#installation) · [Tookit](#one-toolkit-four-workflows) · [Quick start](#your-first-import) · [Feedback](#feedback)**
+**[Installation](#installation) · [Toolkit](#one-toolkit-four-workflows) · [Quick start](#your-first-import) · [Feedback](#feedback)**
 
 </div>
 
@@ -17,10 +17,10 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 | :-- | :-- |
 | **Stage Importer** | Reconstructs scenarios, zones, placements, geometry, materials, textures, sky and approximate lighting. |
 | **Asset Importer** | Opens standalone SZS and BFRES model packages without requiring a stage import. |
-| **Animation Tools** | Imports support skeletal, material, visibility, and camera animation to Blender-native data. |
+| **Animation Tools** | Imports supported skeletal, material, visibility, and camera animation to Blender-native data. |
 | **Diagnostics** | Shows model imports, fallbacks, warnings, performance information, cache state instead of silently failing. |
 
-The Toolkit reads `SZS/Yaz0`, `SARC`, `BYML`, `BFRES`, and `BTNX` directly and creates editable Blender objects, materials, images, armatures, actions, and cameras.
+The Toolkit reads `SZS/Yaz0`, `SARC`, `BYML`, `BFRES`, and `BNTX` directly and creates editable Blender objects, materials, images, armatures, actions, and cameras.
 
 ## Requirements
 
@@ -33,13 +33,13 @@ The Toolkit reads `SZS/Yaz0`, `SARC`, `BYML`, `BFRES`, and `BTNX` directly and c
 1. Open the repo's **[Releases](https://github.com/djfox11/Odyssey-Toolkit/releases)** page.
 2. Download the ZIP archive named `odyssey_toolkit_v0.40.0.zip`.
 3. In Blender, open **Edit → Preferences → Get Extensions**.
-4. Open the top-right menu and choose **Choose fro Disk...** and select the downloaded ZIP.
+4. Open the top-right menu and choose **Choose from Disk...** and select the downloaded ZIP.
 5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.
 
 > [!TIP]
 > The compatible `oead` Python wheel is already bundled. You do not need to install the Python package into Blender manually.
 
-# Your First Import
+## Your First Import
 
 ```text
 Odyssey tab
@@ -76,7 +76,7 @@ For individual files, expand **Assets & Animations** and choose **Import Standal
 
 ## Feedback
 
-Use beta reports include:
+Useful beta reports include:
 - Blender version and Windows version
 - The workflow and stage or asset involved
 - Exact reproduction steps
@@ -93,6 +93,6 @@ See [LICENSE](LICENSE) for the complete terms.
 
 <div align="center">
 
-*\~Built my djfox11~*
+*\~Built by djfox11~*
 
 </div>
