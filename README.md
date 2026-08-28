@@ -41,15 +41,6 @@ The Toolkit reads `SZS/Yaz0`, `SARC`, `BYML`, `BFRES`, and `BNTX` directly and c
 
 ## Your First Import
 
-```text
-Odyssey tab
-└── Stage Importer
-    ├── Source → choose your extracted romfs folder
-    ├── Stage → choose a kingdom stage
-    ├── Scenario → choose the scenario to reconstruct
-    └── Import Stage
-```
-
 1. Select a ROMFS containing `SystemData\WorldList.szs`, `StageData`, and `ObjectData`.
 2. Choose a stage and scenario.
 3. Adjust import categories or optional stage lighting if needed.
