@@ -1795,6 +1795,8 @@ def _create_solid_material(
     base_color: tuple[float, float, float, float],
     identity: str,
     shader_material: _ResolvedMaterialShader | None = None,
+    *,
+    apply_cloth_nov_approximation: bool = False,
 ) -> bpy.types.Material:
     name = f"SMO [{identity}] {asset_name} - {material_name}"
     material = bpy.data.materials.get(name)
@@ -1842,6 +1844,7 @@ def _create_solid_material(
         {},
         shader_material,
         allow_transparency=True,
+        apply_cloth_nov_approximation=apply_cloth_nov_approximation,
     )
     _set_material_transparency(
         material,
@@ -4868,6 +4871,9 @@ class SMO_OT_import_static_models(Operator):
         }
 
         shader_material = _resolve_material_shader(source)
+        apply_cloth_nov_approximation = bool(
+            getattr(self, "_experimental_cloth_nov", False)
+        )
 
         source_material_shader = getattr(source, "material_shader", None)
         atmosphere_kind = _atmosphere_shader_kind(source)
@@ -4890,6 +4896,7 @@ class SMO_OT_import_static_models(Operator):
                 source.material_name,
                 source.base_color,
                 shader_material,
+                apply_cloth_nov_approximation,
             )
 
             if material_key not in self._material_cache:
@@ -4901,6 +4908,9 @@ class SMO_OT_import_static_models(Operator):
                         source.base_color,
                         identity,
                         shader_material=shader_material,
+                        apply_cloth_nov_approximation=(
+                            apply_cloth_nov_approximation
+                        ),
                     )
                 )
 
@@ -5092,9 +5102,6 @@ class SMO_OT_import_static_models(Operator):
             has_transparency,
         ) = base_binding
         is_fallback = texture_name != source.albedo_texture_name
-        apply_cloth_nov_approximation = bool(
-            getattr(self, "_experimental_cloth_nov", False)
-        )
         material_key = (
             "textured",
             asset_key,

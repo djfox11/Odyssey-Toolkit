@@ -31,7 +31,7 @@ The Toolkit reads `SZS/Yaz0`, `SARC`, `BYML`, `BFRES`, and `BNTX` directly and c
 ## Installation
 
 1. Open the repo's **[Releases](https://github.com/djfox11/Odyssey-Toolkit/releases)** page.
-2. Download the ZIP archive named `odyssey_toolkit_v0.40.0.zip`.
+2. Download the ZIP archive named `odyssey_toolkit_v0.41.1.zip`.
 3. In Blender, open **Edit → Preferences → Get Extensions**.
 4. Open the top-right menu and choose **Choose from Disk...** and select the downloaded ZIP.
 5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.

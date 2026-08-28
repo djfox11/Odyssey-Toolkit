@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "odyssey_toolkit"
-version = "0.41.0"
+version = "0.41.1"
 name = "Odyssey Toolkit"
 tagline = "Import and inspect Odyssey stages, assets, and animations"
 maintainer = "djfox11"

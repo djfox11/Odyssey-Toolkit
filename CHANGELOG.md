@@ -4,6 +4,12 @@ All notable Odyssey Toolkit releases are documented here.
 
 ## Unreleased
 
+## 0.41.1 - 2026-08-28
+
+### Fixed
+
+- Fixed textureless and base-colour materials failing to forward the experimental cloth option, which could abort whole static-model archives and omit ground, scenery, and procedural ocean geometry.
+
 ## 0.41.0 - 2026-08-27
 
 ### Changed
