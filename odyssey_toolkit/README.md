@@ -68,7 +68,7 @@ than silently discarded.
 4. Restart Blender before importing.
 
 Both `odyssey_toolkit.zip` and a versioned name such as
-`odyssey_toolkit_v0.41.1.zip` are valid distribution filenames. They contain the
+`odyssey_toolkit_v0.41.2.zip` are valid distribution filenames. They contain the
 same manifest package ID, `odyssey_toolkit`; install only one of them. Do not also
 copy an extracted legacy add-on folder into Blender's `scripts/addons` directory.
 

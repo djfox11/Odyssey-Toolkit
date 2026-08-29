@@ -5773,6 +5773,18 @@ class SMO_OT_import_static_models(Operator):
         self._commit_previous_import()
 
         if self._stage_lighting is not None:
+            # Finalizing the replacement removes empty generated collections.
+            # Reacquire Lighting here because stages without placed lights leave
+            # it empty until the global Sun is linked below.
+            from . import get_or_create_named_import_collection
+
+            self._lighting_collection = get_or_create_named_import_collection(
+                self._collection,
+                "Lighting",
+                "LIGHTING",
+            )
+            self._lighting_collection.color_tag = "COLOR_05"
+
             try:
                 from .stage_lighting import apply_global_stage_lighting
 

@@ -4,6 +4,12 @@ All notable Odyssey Toolkit releases are documented here.
 
 ## Unreleased
 
+## 0.41.2 - 2026-08-29
+
+### Fixed
+
+- Restored global stage-lighting import for stages whose generated Lighting collection was empty before the World and Sun were created.
+
 ## 0.41.1 - 2026-08-28
 
 ### Fixed
