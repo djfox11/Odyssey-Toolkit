@@ -1,8 +1,12 @@
 <div align="center">
 
-# Odyssey Toolkit
+<p>
+  <img src="/logo.png" height=250px">
+</p>
 
-**[Installation](#installation) · [Toolkit](#one-toolkit-four-workflows) · [Quick start](#your-first-import) · [Feedback](#feedback)**
+<hr>
+
+**[Installation](#installation) · [Quick Start](#your-first-import) · [Feedback](#feedback)**
 
 </div>
 
