@@ -2,7 +2,7 @@
 
 # Odyssey Toolkit
 
-**[Installation](#installation) · [Toolkit](#one-toolkit-four-workflows) · [Quick start](#your-first-import) · [Feedback](#feedback)**
+**[Installation](#installation) · [Quick start](#your-first-import) · [Feedback](#feedback)**
 
 </div>
 
