@@ -1,7 +1,7 @@
 <div align="center">
 
 <p>
-  <img src="/logo.png" height=250px">
+  <img src="/docs/logo.png" height=250px">
 </p>
 
 <hr>
