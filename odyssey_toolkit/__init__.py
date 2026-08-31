@@ -21,7 +21,7 @@ from bpy.types import AddonPreferences, Operator, Panel, PropertyGroup
 bl_info = {
     "name": "Odyssey Toolkit",
     "author": "djfox11",
-    "version": (0, 41, 2),
+    "version": (0, 41, 3),
     "blender": (4, 5, 0),
     "location": "3D Viewport > Sidebar > Odyssey",
     "description": (
