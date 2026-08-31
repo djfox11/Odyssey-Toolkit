@@ -1020,6 +1020,73 @@ class SMOProperties(PropertyGroup):
     )
 
 
+def _enum_item_label(items: Any, identifier: str, fallback: str) -> str:
+    return next(
+        (item[1] for item in items if item[0] == identifier),
+        fallback,
+    )
+
+
+class SMO_OT_select_kingdom(Operator):
+    bl_idname = "smo.select_kingdom"
+    bl_label = "Search Stages"
+    bl_description = "Search for and select a stage"
+    bl_property = "selection"
+
+    selection: EnumProperty(
+        name="Stage",
+        description="StageData stage to import",
+        items=kingdom_enum_items,
+    )
+
+    def invoke(
+        self,
+        context: bpy.types.Context,
+        _event: bpy.types.Event,
+    ) -> set[str]:
+        current = str(context.scene.smo_settings.kingdom)
+
+        if any(item[0] == current for item in _KINGDOM_ENUM_ITEMS):
+            self.selection = current
+
+        context.window_manager.invoke_search_popup(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context: bpy.types.Context) -> set[str]:
+        context.scene.smo_settings.kingdom = self.selection
+        return {"FINISHED"}
+
+
+class SMO_OT_select_scenario(Operator):
+    bl_idname = "smo.select_scenario"
+    bl_label = "Search Scenarios"
+    bl_description = "Search for and select a scenario"
+    bl_property = "selection"
+
+    selection: EnumProperty(
+        name="Scenario",
+        description="Scenario to import",
+        items=scenario_enum_items,
+    )
+
+    def invoke(
+        self,
+        context: bpy.types.Context,
+        _event: bpy.types.Event,
+    ) -> set[str]:
+        current = str(context.scene.smo_settings.scenario)
+
+        if any(item[0] == current for item in _SCENARIO_ENUM_ITEMS):
+            self.selection = current
+
+        context.window_manager.invoke_search_popup(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context: bpy.types.Context) -> set[str]:
+        context.scene.smo_settings.scenario = self.selection
+        return {"FINISHED"}
+
+
 def get_or_create_child_collection(
     parent: bpy.types.Collection,
     name: str,
@@ -2352,7 +2419,15 @@ class SMO_PT_kingdom_importer(Panel):
         stage_box = layout.box()
         stage_box.enabled = not import_running
         stage_box.label(text="Stage", icon="WORLD")
-        stage_box.prop(settings, "kingdom", text="")
+        stage_box.operator(
+            "smo.select_kingdom",
+            text=_enum_item_label(
+                _KINGDOM_ENUM_ITEMS,
+                str(settings.kingdom),
+                "Choose a stage",
+            ),
+            icon="VIEWZOOM",
+        )
         selected_world = _WORLD_BY_STAGE.get(str(settings.kingdom))
 
         if selected_world is not None:
@@ -2362,7 +2437,15 @@ class SMO_PT_kingdom_importer(Panel):
             )
 
         stage_box.label(text="Scenario")
-        stage_box.prop(settings, "scenario", text="")
+        stage_box.operator(
+            "smo.select_scenario",
+            text=_enum_item_label(
+                _SCENARIO_ENUM_ITEMS,
+                str(settings.scenario),
+                "Choose a scenario",
+            ),
+            icon="VIEWZOOM",
+        )
         from .placement_classifier import IMPORT_CATEGORY_FILTERS
 
         category_header = stage_box.row(align=True)
@@ -2574,6 +2657,7 @@ from .smd_animation import (
 from .bfres_animation_import import (
     SMO_OT_apply_bfres_animation,
     SMO_OT_refresh_bfres_animations,
+    SMO_OT_select_bfres_animation,
     SMO_PT_bfres_animations,
     register_bfres_animation_properties,
     unregister_bfres_animation_properties,
@@ -2581,6 +2665,7 @@ from .bfres_animation_import import (
 from .bfres_camera_import import (
     SMO_OT_apply_bfres_camera_animation,
     SMO_OT_refresh_bfres_camera_animations,
+    SMO_OT_select_bfres_camera_animation,
     SMO_PT_bfres_camera_animations,
     register_bfres_camera_properties,
     unregister_bfres_camera_properties,
@@ -2591,6 +2676,8 @@ CLASSES = (
     SMO_OT_set_preferences_section,
     SMOAddonPreferences,
     SMOProperties,
+    SMO_OT_select_kingdom,
+    SMO_OT_select_scenario,
     SMO_OT_open_texture_cache,
     SMO_OT_refresh_texture_cache_status,
     SMO_OT_clear_texture_cache,
@@ -2607,8 +2694,10 @@ CLASSES = (
     SMO_OT_import_static_models,
     SMO_OT_import_test_model,
     SMO_OT_import_smd_animation,
+    SMO_OT_select_bfres_animation,
     SMO_OT_refresh_bfres_animations,
     SMO_OT_apply_bfres_animation,
+    SMO_OT_select_bfres_camera_animation,
     SMO_OT_refresh_bfres_camera_animations,
     SMO_OT_apply_bfres_camera_animation,
     SMO_OT_export_model_report,

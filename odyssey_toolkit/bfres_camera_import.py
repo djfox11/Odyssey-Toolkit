@@ -160,6 +160,16 @@ def bfres_camera_enum_items(
     return items
 
 
+def bfres_camera_search_enum_items(
+    _operator: Operator,
+    context: bpy.types.Context | None,
+) -> tuple[tuple[str, str, str, str, int], ...]:
+    if context is None:
+        return ()
+
+    return bfres_camera_enum_items(context.scene, context)
+
+
 def _selected_camera_source(
     scene: bpy.types.Scene,
 ) -> CameraAnimationSource:
@@ -403,6 +413,44 @@ def import_bfres_camera_animation(
     return camera_object, object_action, camera_action
 
 
+class SMO_OT_select_bfres_camera_animation(Operator):
+    bl_idname = "smo.select_bfres_camera_animation"
+    bl_label = "Search BFRES Camera Animations"
+    bl_description = "Search for and select a BFRES camera animation"
+    bl_property = "selection"
+
+    selection: EnumProperty(
+        name="Camera Animation",
+        description="Native BFRES scene camera animation to import",
+        items=bfres_camera_search_enum_items,
+    )
+
+    def invoke(
+        self,
+        context: bpy.types.Context,
+        _event: bpy.types.Event,
+    ) -> set[str]:
+        current = str(
+            getattr(
+                context.scene,
+                "smo_bfres_camera_animation",
+                "",
+            )
+            or ""
+        )
+        items = bfres_camera_enum_items(context.scene, context)
+
+        if any(item[0] == current for item in items):
+            self.selection = current
+
+        context.window_manager.invoke_search_popup(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context: bpy.types.Context) -> set[str]:
+        context.scene.smo_bfres_camera_animation = self.selection
+        return {"FINISHED"}
+
+
 class SMO_OT_refresh_bfres_camera_animations(Operator):
     bl_idname = "smo.refresh_bfres_camera_animations"
     bl_label = "Refresh BFRES Camera Animations"
@@ -522,7 +570,23 @@ class SMO_PT_bfres_camera_animations(Panel):
             return
 
         layout.label(text=f"{len(sources)} available camera clips")
-        layout.prop(scene, "smo_bfres_camera_animation", text="")
+        identifier = str(
+            getattr(scene, "smo_bfres_camera_animation", "") or ""
+        )
+        items = bfres_camera_enum_items(scene, context)
+        label = next(
+            (
+                item[1]
+                for item in items
+                if item[0] == identifier
+            ),
+            "Choose a camera animation",
+        )
+        layout.operator(
+            "smo.select_bfres_camera_animation",
+            text=label,
+            icon="VIEWZOOM",
+        )
 
         try:
             source = _selected_camera_source(scene)

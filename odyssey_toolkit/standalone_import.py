@@ -237,39 +237,6 @@ class SMO_OT_import_test_model(Operator):
             and Path(entry.name).suffix.casefold() == ".bfres"
         )
 
-    @staticmethod
-    def _test_collection(
-        context: bpy.types.Context,
-        asset_name: str,
-    ) -> bpy.types.Collection:
-        collection_name = f"SMO Test - {asset_name}"
-        collection = bpy.data.collections.get(collection_name)
-
-        if collection is not None and not collection.get("smo_test_import"):
-            collection = next(
-                (
-                    candidate
-                    for candidate in bpy.data.collections
-                    if candidate.get("smo_test_import")
-                    and (
-                        candidate.get("smo_test_asset_name") == asset_name
-                        or candidate.name.startswith(f"{collection_name}.")
-                    )
-                ),
-                None,
-            )
-
-        if collection is None:
-            collection = bpy.data.collections.new(collection_name)
-            context.scene.collection.children.link(collection)
-        elif context.scene.collection.children.get(collection.name) is None:
-            context.scene.collection.children.link(collection)
-
-        collection["smo_test_import"] = True
-        collection["smo_test_asset_name"] = asset_name
-        collection.color_tag = "COLOR_07"
-        return collection
-
     def execute(self, context: bpy.types.Context) -> set[str]:
         created_objects: list[bpy.types.Object] = []
         timings = PerformanceTimings()
@@ -328,22 +295,25 @@ class SMO_OT_import_test_model(Operator):
             self._fallback_display_textures: set[str] = set()
             self._texture_errors: dict[str, str] = {}
 
-            collection = self._test_collection(context, model_path.stem)
+            collection = context.collection
+
+            if collection is None or collection.get("smo_test_import"):
+                collection = context.scene.collection
+
             previous_generated = {
                 obj
-                for obj in collection.objects
+                for obj in bpy.data.objects
                 if obj.get("smo_test_import")
+                and str(
+                    obj.get("smo_source_file")
+                    or (
+                        obj.parent.get("smo_source_file")
+                        if obj.parent is not None
+                        else ""
+                    )
+                ).casefold()
+                == str(model_path).casefold()
             }
-            root_name = f"{model_path.stem} Test Root"
-            root = bpy.data.objects.new(root_name, None)
-            root.empty_display_type = "PLAIN_AXES"
-            root["smo_test_import"] = True
-            root["smo_source_file"] = str(model_path)
-            root["smo_shared_texture_archives"] = json.dumps(
-                [str(path) for path in shared_texture_paths]
-            )
-            collection.objects.link(root)
-            created_objects.append(root)
             object_count = 0
             model_count = 0
             armature_count = 0
@@ -395,8 +365,10 @@ class SMO_OT_import_test_model(Operator):
                                     model.skeleton,
                                 )
                             )
-                            armature_object.parent = root
                             armature_object["smo_test_import"] = True
+                            armature_object["smo_source_file"] = str(
+                                model_path
+                            )
                             armature_object["smo_armature_generated"] = True
                             armature_object["smo_source_archive"] = str(
                                 model_path
@@ -439,6 +411,7 @@ class SMO_OT_import_test_model(Operator):
                             mesh,
                         )
                         obj["smo_test_import"] = True
+                        obj["smo_source_file"] = str(model_path)
                         obj["smo_source_bfres"] = bfres_name
                         obj["smo_source_model"] = model.name
                         collection.objects.link(obj)
@@ -487,16 +460,12 @@ class SMO_OT_import_test_model(Operator):
                                     if key in obj:
                                         del obj[key]
 
-                                obj.parent = root
                                 print(
                                     "[Odyssey Toolkit Standalone] "
                                     "Skin binding failed; using static "
                                     f"bind pose for {source_mesh.name}: "
                                     f"{exc}"
                                 )
-                        else:
-                            obj.parent = root
-
                         object_count += 1
 
                     if (
@@ -520,23 +489,35 @@ class SMO_OT_import_test_model(Operator):
                     f"No supported static meshes were found in {model_path.name}."
                 )
 
-            root["smo_model_count"] = model_count
-            root["smo_mesh_object_count"] = object_count
-            root["smo_custom_normals_enabled"] = apply_custom_normals
-            root["smo_cloth_nov_approximation_enabled"] = (
+            imported_objects = tuple(
+                obj
+                for obj in created_objects
+                if obj.name in bpy.data.objects
+            )
+            summary_object = next(
+                (obj for obj in imported_objects if obj.type == "ARMATURE"),
+                imported_objects[0],
+            )
+            summary_object["smo_shared_texture_archives"] = json.dumps(
+                [str(path) for path in shared_texture_paths]
+            )
+            summary_object["smo_model_count"] = model_count
+            summary_object["smo_mesh_object_count"] = object_count
+            summary_object["smo_custom_normals_enabled"] = apply_custom_normals
+            summary_object["smo_cloth_nov_approximation_enabled"] = (
                 self._experimental_cloth_nov
             )
-            root["smo_armatures_enabled"] = import_armatures
-            root["smo_armature_object_count"] = armature_count
-            root["smo_rigged_mesh_object_count"] = rigged_mesh_count
-            root["smo_rig_errors"] = json.dumps(
+            summary_object["smo_armatures_enabled"] = import_armatures
+            summary_object["smo_armature_object_count"] = armature_count
+            summary_object["smo_rigged_mesh_object_count"] = rigged_mesh_count
+            summary_object["smo_rig_errors"] = json.dumps(
                 rig_errors,
                 sort_keys=True,
             )
-            root["smo_missing_textures"] = json.dumps(
+            summary_object["smo_missing_textures"] = json.dumps(
                 sorted(self._missing_albedo_textures)
             )
-            root["smo_texture_errors"] = json.dumps(
+            summary_object["smo_texture_errors"] = json.dumps(
                 {
                     name: message
                     for name, message in sorted(self._texture_errors.items())
@@ -552,14 +533,14 @@ class SMO_OT_import_test_model(Operator):
             else:
                 cache_payload = self._persistent_texture_cache.payload()
 
-            root["smo_texture_cache"] = json.dumps(
+            summary_object["smo_texture_cache"] = json.dumps(
                 cache_payload,
                 sort_keys=True,
                 separators=(",", ":"),
             )
             timings.add("import_total", time.perf_counter() - import_started)
-            root["smo_performance_timings"] = timings.to_json()
-            root["smo_performance_total_seconds"] = timings.seconds(
+            summary_object["smo_performance_timings"] = timings.to_json()
+            summary_object["smo_performance_total_seconds"] = timings.seconds(
                 "import_total"
             )
             print_performance_summary(
@@ -568,13 +549,24 @@ class SMO_OT_import_test_model(Operator):
             )
 
             _remove_generated_objects(previous_generated)
-            root.name = root_name
+
+            for legacy_collection in tuple(bpy.data.collections):
+                if (
+                    legacy_collection.get("smo_test_import")
+                    and legacy_collection.get("smo_test_asset_name")
+                    == model_path.stem
+                    and not legacy_collection.objects
+                    and not legacy_collection.children
+                ):
+                    bpy.data.collections.remove(legacy_collection)
 
             for obj in context.selected_objects:
                 obj.select_set(False)
 
-            root.select_set(True)
-            context.view_layer.objects.active = root
+            for obj in imported_objects:
+                obj.select_set(True)
+
+            context.view_layer.objects.active = summary_object
 
             if self._texture_errors:
                 self.report(
@@ -588,7 +580,7 @@ class SMO_OT_import_test_model(Operator):
             else:
                 self.report(
                     {"INFO"},
-                    f"Imported {object_count} test meshes from {model_path.name}.",
+                    f"Imported {object_count} meshes from {model_path.name}.",
                 )
 
             return {"FINISHED"}
@@ -614,5 +606,5 @@ def draw_import_menu(
 ) -> None:
     self.layout.operator(
         SMO_OT_import_test_model.bl_idname,
-        text="Super Mario Odyssey Test Model (.szs/.bfres)",
+        text="Super Mario Odyssey Standalone Model (.szs/.bfres)",
     )

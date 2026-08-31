@@ -463,6 +463,10 @@ def bfres_animation_enum_items(
         return ()
 
     cache_key = (armature.name, str(armature.get("smo_rig_key") or ""))
+    cached = _ENUM_ITEM_CACHE.get(cache_key)
+
+    if cached is not None:
+        return cached
 
     try:
         sources = _animation_sources(armature)
@@ -1866,6 +1870,42 @@ def import_bfres_animation(
     return action
 
 
+class SMO_OT_select_bfres_animation(Operator):
+    bl_idname = "smo.select_bfres_animation"
+    bl_label = "Search BFRES Animations"
+    bl_description = "Search for and select a compatible BFRES animation"
+    bl_property = "selection"
+
+    selection: EnumProperty(
+        name="Animation",
+        description=(
+            "Skeletal, bone visibility, shader parameter, and colour "
+            "animations compatible with the selected imported model"
+        ),
+        items=bfres_animation_enum_items,
+    )
+
+    def invoke(
+        self,
+        context: bpy.types.Context,
+        _event: bpy.types.Event,
+    ) -> set[str]:
+        current = str(
+            getattr(context.scene, "smo_bfres_animation", "") or ""
+        )
+        items = bfres_animation_enum_items(context.scene, context)
+
+        if any(item[0] == current for item in items):
+            self.selection = current
+
+        context.window_manager.invoke_search_popup(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context: bpy.types.Context) -> set[str]:
+        context.scene.smo_bfres_animation = self.selection
+        return {"FINISHED"}
+
+
 class SMO_OT_refresh_bfres_animations(Operator):
     bl_idname = "smo.refresh_bfres_animations"
     bl_label = "Refresh BFRES Animations"
@@ -2063,8 +2103,21 @@ class SMO_PT_bfres_animations(Panel):
                 f"{material_count} shader/colour"
             )
         )
-        layout.prop(context.scene, "smo_bfres_animation", text="")
         identifier = str(context.scene.smo_bfres_animation)
+        items = bfres_animation_enum_items(context.scene, context)
+        label = next(
+            (
+                item[1]
+                for item in items
+                if item[0] == identifier
+            ),
+            "Choose an animation",
+        )
+        layout.operator(
+            "smo.select_bfres_animation",
+            text=label,
+            icon="VIEWZOOM",
+        )
 
         try:
             _source, animation = _selected_animation(armature, identifier)
