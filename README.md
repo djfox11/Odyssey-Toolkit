@@ -30,9 +30,6 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 4. Open the top-right menu and choose **Choose from Disk...** and select the downloaded ZIP.
 5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.
 
-> [!TIP]
-> The compatible `oead` Python wheel is already bundled. You do not need to install the Python package into Blender manually.
-
 ## Your First Import
 
 1. Select a ROMFS containing `SystemData\WorldList.szs`, `StageData`, and `ObjectData`.
