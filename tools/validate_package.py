@@ -12,7 +12,6 @@ MANIFEST_NAME = "blender_manifest.toml"
 REQUIRED_ROOT_FILES = {
     "CHANGELOG.md",
     "LICENSE",
-    "README.md",
     "__init__.py",
     MANIFEST_NAME,
 }
