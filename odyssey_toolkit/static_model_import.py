@@ -114,10 +114,13 @@ class _ColorShaderRoute:
     value: tuple[float, float, float, float] | None = None
     texture_name: str | None = None
     multiplier: tuple[float, float, float, float] | None = None
+    sphere_type: int = 0
+    sphere_rate: float = 1.0
     channel: str | None = None
     child: _ColorShaderRoute | None = None
     blend_index: int | None = None
     equation: int | None = None
+    post: int | None = None
     source: _ColorShaderRoute | None = None
     destination: _ColorShaderRoute | None = None
     coefficient: _ColorShaderRoute | None = None
@@ -211,6 +214,14 @@ _BLEND_COMPONENT_CHANNELS = {
 }
 
 
+def _shader_blend_equation(equation: int) -> str | None:
+    return {
+        0: "MIX",
+        1: "SOURCE_PLUS_DESTINATION_TIMES_COEFFICIENT",
+        2: "MULTIPLY_ALL",
+    }.get(equation)
+
+
 def _float4_parameter(
     parameters: dict[str, object],
     name: str,
@@ -262,11 +273,32 @@ def _shader_source_route(
         )
 
     if 60 <= source_code <= 63:
+        color_index = source_code - 60
         value = _float4_parameter(
-            parameters, f"const_color{source_code - 60}"
+            parameters, f"const_color{color_index}"
         )
         if value is not None:
-            return _ColorShaderRoute(source_code, "CONSTANT", value=value)
+            try:
+                sphere_type = int(
+                    options.get(f"sphere_const_color{color_index}", "0")
+                )
+            except (TypeError, ValueError):
+                sphere_type = 0
+            sphere_rate_value = parameters.get(
+                f"sphere_rate_color{color_index}", 1.0
+            )
+            sphere_rate = (
+                float(sphere_rate_value)
+                if isinstance(sphere_rate_value, (float, int))
+                else 1.0
+            )
+            return _ColorShaderRoute(
+                source_code,
+                "CONSTANT",
+                value=value,
+                sphere_type=sphere_type if sphere_type in {0, 1, 2} else 0,
+                sphere_rate=sphere_rate,
+            )
 
     if 80 <= source_code <= 85:
         return _shader_blend_route(
@@ -307,6 +339,7 @@ def _apply_blend_channel(
 
 
 def _shader_blend_coefficient_route(
+    blend_index: int,
     source_code: int,
     options: dict[str, str],
     parameters: dict[str, object],
@@ -314,6 +347,20 @@ def _shader_blend_coefficient_route(
     blend_cache: dict[int, _ColorShaderRoute | None],
     active_blends: set[int],
 ) -> _ColorShaderRoute | None:
+    if source_code == 20:
+        try:
+            mapped_source_code = int(options[f"blend{blend_index}_cof_map"])
+        except (KeyError, TypeError, ValueError):
+            return None
+        return _shader_source_route(
+            mapped_source_code,
+            options,
+            parameters,
+            texture_lookup,
+            blend_cache,
+            active_blends,
+        )
+
     if 30 <= source_code <= 33:
         value = parameters.get(f"const_single{source_code - 30}")
         if isinstance(value, (float, int)):
@@ -369,7 +416,7 @@ def _shader_blend_route(
         blend_cache[blend_index] = None
         return None
 
-    if equation not in {0, 1, 2} or post != 0:
+    if _shader_blend_equation(equation) is None or post not in {0, 10}:
         blend_cache[blend_index] = None
         return None
 
@@ -392,6 +439,7 @@ def _shader_blend_route(
             active_blends,
         )
         coefficient = _shader_blend_coefficient_route(
+            blend_index,
             coefficient_code,
             options,
             parameters,
@@ -421,6 +469,7 @@ def _shader_blend_route(
         "BLEND",
         blend_index=blend_index,
         equation=equation,
+        post=post,
         source=source,
         destination=destination,
         coefficient=coefficient,
@@ -1173,12 +1222,17 @@ def _color_route_metadata(
         result["texture"] = route.texture_name
     if route.multiplier is not None:
         result["multiplier"] = route.multiplier
+    if route.kind == "CONSTANT" and route.sphere_type in {1, 2}:
+        result["sphere_type"] = route.sphere_type
+        result["sphere_rate"] = route.sphere_rate
     if route.channel is not None:
         result["channel"] = route.channel
     if route.blend_index is not None:
         result["blend"] = route.blend_index
     if route.equation is not None:
         result["equation"] = route.equation
+    if route.post is not None:
+        result["post"] = route.post
     if route.child is not None:
         result["child"] = _color_route_metadata(route.child)
     if route.source is not None:
@@ -2845,8 +2899,59 @@ def _build_color_route_component(
         node.label = f"FMAT constant {route.source_code}: {channel}"
         node.location = (-700.0, y)
         node.outputs[0].default_value = route.value[channel_index]
-        cache[key] = node.outputs[0]
-        return node.outputs[0]
+        result_socket = node.outputs[0]
+        if route.sphere_type in {1, 2}:
+            color_index = route.source_code - 60
+            layer_weight = nodes.new("ShaderNodeLayerWeight")
+            layer_weight.name = (
+                f"SMO Constant {route.source_code} {channel} Sphere Facing"
+            )
+            layer_weight.label = "Blender Facing (1 - NoV)"
+            layer_weight.location = (-700.0, y - 60.0)
+            layer_weight.inputs["Blend"].default_value = 0.5
+            sphere_factor = layer_weight.outputs["Facing"]
+            if route.sphere_type == 1:
+                convert = nodes.new("ShaderNodeMath")
+                convert.name = (
+                    f"SMO Constant {route.source_code} {channel} Sphere NoV"
+                )
+                convert.operation = "SUBTRACT"
+                convert.inputs[0].default_value = 1.0
+                convert.location = (-520.0, y - 60.0)
+                links.new(sphere_factor, convert.inputs[1])
+                sphere_factor = convert.outputs[0]
+
+            power = nodes.new("ShaderNodeMath")
+            power.name = (
+                f"SMO Constant {route.source_code} {channel} Sphere Power"
+            )
+            power.label = f"FMAT sphere_rate_color{color_index}"
+            power.operation = "POWER"
+            power.inputs[1].default_value = route.sphere_rate
+            power.location = (-340.0, y - 60.0)
+            _tag_shader_parameter_node(
+                power,
+                f"sphere_rate_color{color_index}",
+                "SCALAR_INPUT_1",
+            )
+            links.new(sphere_factor, power.inputs[0])
+
+            scale = nodes.new("ShaderNodeMath")
+            scale.name = (
+                f"SMO Constant {route.source_code} {channel} Sphere Scale"
+            )
+            scale.label = (
+                f"FMAT sphere_const_color{color_index}="
+                f"{route.sphere_type}"
+            )
+            scale.operation = "MULTIPLY"
+            scale.location = (-160.0, y)
+            links.new(result_socket, scale.inputs[0])
+            links.new(power.outputs[0], scale.inputs[1])
+            result_socket = scale.outputs[0]
+
+        cache[key] = result_socket
+        return result_socket
 
     if route.kind == "TEXTURE" and route.texture_name is not None:
         texture_node = texture_nodes.get(route.texture_name)
@@ -2894,9 +2999,15 @@ def _build_color_route_component(
             cache[key] = socket
         return socket
 
+    equation = (
+        _shader_blend_equation(route.equation)
+        if route.equation is not None
+        else None
+    )
     if (
         route.kind != "BLEND"
-        or route.equation not in {0, 1, 2}
+        or equation is None
+        or route.post not in {0, 10}
         or route.source is None
         or route.destination is None
         or route.coefficient is None
@@ -2926,7 +3037,7 @@ def _build_color_route_component(
         return None
 
     prefix = f"SMO Blend {route.blend_index} {channel}"
-    if route.equation == 0:
+    if equation == "MIX":
         subtract = nodes.new("ShaderNodeMath")
         subtract.name = f"{prefix} Source Minus Destination"
         subtract.operation = "SUBTRACT"
@@ -2946,29 +3057,36 @@ def _build_color_route_component(
         result.use_clamp = False
         links.new(destination, result.inputs[0])
         links.new(multiply.outputs[0], result.inputs[1])
-    elif route.equation == 1:
+    elif equation == "SOURCE_PLUS_DESTINATION_TIMES_COEFFICIENT":
         multiply = nodes.new("ShaderNodeMath")
-        multiply.name = f"{prefix} Source Times Coefficient"
+        multiply.name = f"{prefix} Destination Times Coefficient"
         multiply.operation = "MULTIPLY"
         multiply.use_clamp = False
-        links.new(source, multiply.inputs[0])
+        links.new(destination, multiply.inputs[0])
         links.new(coefficient, multiply.inputs[1])
         result = nodes.new("ShaderNodeMath")
         result.name = f"{prefix} Multiply Add"
-        result.label = "FMAT blend: src * coefficient + dst"
+        result.label = "FMAT blend: src + dst * coefficient"
         result.operation = "ADD"
         result.use_clamp = False
-        links.new(multiply.outputs[0], result.inputs[0])
-        links.new(destination, result.inputs[1])
+        links.new(source, result.inputs[0])
+        links.new(multiply.outputs[0], result.inputs[1])
     else:
+        source_destination = nodes.new("ShaderNodeMath")
+        source_destination.name = f"{prefix} Source Times Destination"
+        source_destination.operation = "MULTIPLY"
+        source_destination.use_clamp = False
+        links.new(source, source_destination.inputs[0])
+        links.new(destination, source_destination.inputs[1])
         result = nodes.new("ShaderNodeMath")
-        result.name = f"{prefix} Multiply"
-        result.label = "FMAT blend: src * dst"
+        result.name = f"{prefix} Multiply All"
+        result.label = "FMAT blend: src * dst * coefficient"
         result.operation = "MULTIPLY"
         result.use_clamp = False
-        links.new(source, result.inputs[0])
-        links.new(destination, result.inputs[1])
+        links.new(source_destination.outputs[0], result.inputs[0])
+        links.new(coefficient, result.inputs[1])
 
+    result.use_clamp = route.post == 10
     result.location = (-220.0, y)
     cache[key] = result.outputs[0]
     return result.outputs[0]
@@ -3021,8 +3139,59 @@ def _build_color_shader_route(
             _shader_color_parameter_name(route.source_code),
             "COLOR_OUTPUT",
         )
-        cache[route] = node.outputs["Color"]
-        return node.outputs["Color"]
+        result_socket = node.outputs["Color"]
+        if route.sphere_type in {1, 2}:
+            color_index = route.source_code - 60
+            layer_weight = nodes.new("ShaderNodeLayerWeight")
+            layer_weight.name = (
+                f"SMO Constant {route.source_code} Sphere Facing"
+            )
+            layer_weight.label = "Blender Facing (1 - NoV)"
+            layer_weight.location = (-700.0, y - 90.0)
+            layer_weight.inputs["Blend"].default_value = 0.5
+            sphere_factor = layer_weight.outputs["Facing"]
+
+            # Odyssey type 1 is NoV and type 2 is the grazing-angle
+            # complement, 1 - NoV. Blender Facing already supplies the
+            # latter, so only type 1 needs its polarity converted.
+            if route.sphere_type == 1:
+                convert = nodes.new("ShaderNodeMath")
+                convert.name = (
+                    f"SMO Constant {route.source_code} Sphere NoV"
+                )
+                convert.operation = "SUBTRACT"
+                convert.inputs[0].default_value = 1.0
+                convert.location = (-500.0, y - 90.0)
+                links.new(sphere_factor, convert.inputs[1])
+                sphere_factor = convert.outputs[0]
+
+            power = nodes.new("ShaderNodeMath")
+            power.name = f"SMO Constant {route.source_code} Sphere Power"
+            power.label = f"FMAT sphere_rate_color{color_index}"
+            power.operation = "POWER"
+            power.inputs[1].default_value = route.sphere_rate
+            power.location = (-300.0, y - 90.0)
+            _tag_shader_parameter_node(
+                power,
+                f"sphere_rate_color{color_index}",
+                "SCALAR_INPUT_1",
+            )
+            links.new(sphere_factor, power.inputs[0])
+
+            scale = nodes.new("ShaderNodeVectorMath")
+            scale.name = f"SMO Constant {route.source_code} Sphere Scale"
+            scale.label = (
+                f"FMAT sphere_const_color{color_index}="
+                f"{route.sphere_type}"
+            )
+            scale.operation = "SCALE"
+            scale.location = (-100.0, y)
+            links.new(result_socket, scale.inputs["Vector"])
+            links.new(power.outputs[0], scale.inputs["Scale"])
+            result_socket = scale.outputs["Vector"]
+
+        cache[route] = result_socket
+        return result_socket
 
     if route.kind == "TEXTURE" and route.texture_name is not None:
         texture_node = texture_nodes.get(route.texture_name)
@@ -3076,9 +3245,15 @@ def _build_color_shader_route(
         cache[route] = combine.outputs["Color"]
         return combine.outputs["Color"]
 
+    equation = (
+        _shader_blend_equation(route.equation)
+        if route.equation is not None
+        else None
+    )
     if (
         route.kind != "BLEND"
-        or route.equation not in {0, 1, 2}
+        or equation is None
+        or route.post not in {0, 10}
         or route.source is None
         or route.destination is None
         or route.coefficient is None
@@ -3098,7 +3273,7 @@ def _build_color_shader_route(
         return None
 
     prefix = f"SMO Blend {route.blend_index}"
-    if route.equation == 0:
+    if equation == "MIX":
         subtract = nodes.new("ShaderNodeVectorMath")
         subtract.name = f"{prefix} Source Minus Destination"
         subtract.operation = "SUBTRACT"
@@ -3115,29 +3290,52 @@ def _build_color_shader_route(
         result.operation = "ADD"
         links.new(destination, result.inputs[0])
         links.new(multiply.outputs[0], result.inputs[1])
-    elif route.equation == 1:
+    elif equation == "SOURCE_PLUS_DESTINATION_TIMES_COEFFICIENT":
         multiply = nodes.new("ShaderNodeVectorMath")
-        multiply.name = f"{prefix} Source Times Coefficient"
+        multiply.name = f"{prefix} Destination Times Coefficient"
         multiply.operation = "MULTIPLY"
-        links.new(source, multiply.inputs[0])
+        links.new(destination, multiply.inputs[0])
         links.new(coefficient, multiply.inputs[1])
         result = nodes.new("ShaderNodeVectorMath")
         result.name = f"{prefix} Multiply Add"
-        result.label = "FMAT blend: src * coefficient + dst"
+        result.label = "FMAT blend: src + dst * coefficient"
         result.operation = "ADD"
-        links.new(multiply.outputs[0], result.inputs[0])
-        links.new(destination, result.inputs[1])
-    else:
-        result = nodes.new("ShaderNodeVectorMath")
-        result.name = f"{prefix} Multiply"
-        result.label = "FMAT blend: src * dst"
-        result.operation = "MULTIPLY"
         links.new(source, result.inputs[0])
-        links.new(destination, result.inputs[1])
+        links.new(multiply.outputs[0], result.inputs[1])
+    else:
+        source_destination = nodes.new("ShaderNodeVectorMath")
+        source_destination.name = f"{prefix} Source Times Destination"
+        source_destination.operation = "MULTIPLY"
+        links.new(source, source_destination.inputs[0])
+        links.new(destination, source_destination.inputs[1])
+        result = nodes.new("ShaderNodeVectorMath")
+        result.name = f"{prefix} Multiply All"
+        result.label = "FMAT blend: src * dst * coefficient"
+        result.operation = "MULTIPLY"
+        links.new(source_destination.outputs[0], result.inputs[0])
+        links.new(coefficient, result.inputs[1])
 
     result.location = (-120.0, y)
-    cache[route] = result.outputs[0]
-    return result.outputs[0]
+    result_socket = result.outputs[0]
+    if route.post == 10:
+        clamp_low = nodes.new("ShaderNodeVectorMath")
+        clamp_low.name = f"{prefix} Saturate Minimum"
+        clamp_low.operation = "MAXIMUM"
+        clamp_low.inputs[1].default_value = (0.0, 0.0, 0.0)
+        clamp_low.location = (60.0, y)
+        links.new(result_socket, clamp_low.inputs[0])
+
+        clamp_high = nodes.new("ShaderNodeVectorMath")
+        clamp_high.name = f"{prefix} Saturate Maximum"
+        clamp_high.label = "FMAT post: saturate"
+        clamp_high.operation = "MINIMUM"
+        clamp_high.inputs[1].default_value = (1.0, 1.0, 1.0)
+        clamp_high.location = (240.0, y)
+        links.new(clamp_low.outputs[0], clamp_high.inputs[0])
+        result_socket = clamp_high.outputs[0]
+
+    cache[route] = result_socket
+    return result_socket
 
 def _invert_scalar_route_socket(
     material: bpy.types.Material,
