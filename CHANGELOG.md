@@ -4,6 +4,14 @@ All notable Odyssey Toolkit releases are documented here.
 
 ## Unreleased
 
+### Fixed
+
+- Followed FMAT blend coefficient-map routes and saturating post operations, restoring
+  poison surface colour blends and nested lava emission chains.
+- Corrected FMAT blend equation 1's operand order and equation 2's omitted coefficient,
+  and reproduced the view-dependent `sphere_const_color*` modulation used by Luncheon
+  lava instead of treating every HDR constant as an unconditional emission contribution.
+
 ## 0.41.2 - 2026-08-29
 
 ### Fixed
