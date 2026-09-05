@@ -12,6 +12,19 @@ All notable Odyssey Toolkit releases are documented here.
   and reproduced the view-dependent `sphere_const_color*` modulation used by Luncheon
   lava instead of treating every HDR constant as an unconditional emission contribution.
 
+## 0.41.3 - 2026-08-31
+
+### Added
+
+- Added searchable selectors for stages, scenarios, BFRES animations and BFRES camera
+  animations.
+
+### Changed
+
+- Imported standalone models directly into the active collection and selected their
+  generated objects instead of creating a test-only wrapper collection and root.
+- Cached compatible BFRES animation choices for imported armatures.
+
 ## 0.41.2 - 2026-08-29
 
 ### Fixed
@@ -50,7 +63,8 @@ All notable Odyssey Toolkit releases are documented here.
 
 ### Release engineering
 
-- Added the GPL 2.0 license text, release glossary, compatibility decision record, reproducible package builder, and explicit release-candidate checklist.
+- Added the GPL 2.0 license text, release glossary, compatibility decision record,
+  release package builder, and explicit release-candidate checklist.
 - Retained the existing 38-script Blender regression matrix and static source/ZIP hygiene checks.
 
 ## 0.39.1 - 2026-08-23

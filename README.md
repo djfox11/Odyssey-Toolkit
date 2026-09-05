@@ -1,12 +1,12 @@
 <div align="center">
 
 <p>
-  <img src="/docs/logo.png" height=250px width"auto">
+  <img src="/docs/logo.png" alt="Odyssey Toolkit" height="250">
 </p>
 
 <hr>
 
-**[Installation](#installation) · [Quick Start](#your-first-import) · [Feedback](#feedback)**
+**[Installation](docs/installation.md) · [Diagnostics](docs/diagnostics.md) · [Troubleshooting](docs/troubleshooting.md) · [Quick Start](#your-first-import) · [Feedback](#feedback)**
 
 </div>
 
@@ -25,10 +25,21 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 ## Installation
 
 1. Open the repo's **[Releases](https://github.com/djfox11/Odyssey-Toolkit/releases)** page.
-2. Download the ZIP archive named `odyssey_toolkit_v0.xx.x.zip`.
+2. Under **Assets**, download the attached ZIP named `odyssey_toolkit_v0.xx.x.zip`.
 3. In Blender, open **Edit → Preferences → Get Extensions**.
 4. Open the top-right menu and choose **Choose from Disk...** and select the downloaded ZIP.
 5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.
+
+> [!WARNING]
+> Do not download GitHub's automatically generated **Source code (zip)** or
+> **Source code (tar.gz)** archives. They are repository snapshots, not installable
+> Blender extension packages.
+
+> [!TIP]
+> The compatible `oead` Python wheel is already bundled. You do not need to install the Python package into Blender manually.
+
+See the [full installation guide](docs/installation.md) for updates, checksum
+verification and stale-install cleanup.
 
 ## Your First Import
 
@@ -63,6 +74,9 @@ Useful beta reports include:
 - The workflow and stage or asset involved
 - Exact reproduction steps
 - Diagnostics summary
+
+See [Diagnostics](docs/diagnostics.md) for the data to collect and
+[Troubleshooting](docs/troubleshooting.md) for common fixes.
 
 Please do not attach ROMFS files, extracted game assets, encryption keys, or complete `.blend` projects containing the game data.
 

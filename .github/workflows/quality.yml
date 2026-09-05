@@ -3,6 +3,12 @@ name: Quality
 on:
   push:
   pull_request:
+  workflow_call:
+    inputs:
+      source_ref:
+        description: Git ref to check out and validate
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -13,6 +19,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_ref }}
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v7

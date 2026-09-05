@@ -18,7 +18,15 @@ env:
   RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
+  quality:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/quality.yml
+    with:
+      source_ref: ${{ inputs.tag || github.ref }}
+
   draft-release:
+    needs: quality
     runs-on: windows-latest
     steps:
       - name: Check out tagged source
@@ -52,7 +60,7 @@ jobs:
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash.ToLowerInvariant()
           "$hash  odyssey_toolkit_v$env:VERSION.zip" | Set-Content -Encoding ascii SHA256SUMS.txt
 
-      - name: Create private draft release
+      - name: Create private draft release with checksum
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,3 +71,22 @@ jobs:
             --draft `
             --generate-notes `
             --title "Odyssey Toolkit $env:VERSION"
+
+      - name: Verify draft release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assetNames = @(
+            gh release view $env:RELEASE_TAG --json assets --jq '.assets[].name'
+          )
+          $expectedAssets = @(
+            "odyssey_toolkit_v$env:VERSION.zip",
+            "SHA256SUMS.txt"
+          )
+          $missingAssets = @(
+            $expectedAssets | Where-Object { $_ -notin $assetNames }
+          )
+          if ($missingAssets.Count -gt 0) {
+            throw "Draft release is missing assets: $($missingAssets -join ', ')"
+          }
