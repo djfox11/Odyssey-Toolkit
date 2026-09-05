@@ -63,7 +63,8 @@ All notable Odyssey Toolkit releases are documented here.
 
 ### Release engineering
 
-- Added the GPL 2.0 license text, release glossary, compatibility decision record, reproducible package builder, and explicit release-candidate checklist.
+- Added the GPL 2.0 license text, release glossary, compatibility decision record,
+  release package builder, and explicit release-candidate checklist.
 - Retained the existing 38-script Blender regression matrix and static source/ZIP hygiene checks.
 
 ## 0.39.1 - 2026-08-23
