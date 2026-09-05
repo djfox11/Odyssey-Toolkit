@@ -6,7 +6,7 @@
 
 <hr>
 
-**[Installation](#installation) · [Quick Start](#your-first-import) · [Feedback](#feedback)**
+**[Installation](docs/installation.md) · [Diagnostics](docs/diagnostics.md) · [Troubleshooting](docs/troubleshooting.md) · [Quick Start](#your-first-import) · [Feedback](#feedback)**
 
 </div>
 
@@ -37,6 +37,9 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 
 > [!TIP]
 > The compatible `oead` Python wheel is already bundled. You do not need to install the Python package into Blender manually.
+
+See the [full installation guide](docs/installation.md) for updates, checksum
+verification and stale-install cleanup.
 
 ## Your First Import
 
@@ -71,6 +74,9 @@ Useful beta reports include:
 - The workflow and stage or asset involved
 - Exact reproduction steps
 - Diagnostics summary
+
+See [Diagnostics](docs/diagnostics.md) for the data to collect and
+[Troubleshooting](docs/troubleshooting.md) for common fixes.
 
 Please do not attach ROMFS files, extracted game assets, encryption keys, or complete `.blend` projects containing the game data.
 
