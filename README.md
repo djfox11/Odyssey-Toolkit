@@ -1,7 +1,7 @@
 <div align="center">
 
 <p>
-  <img src="/docs/logo.png" height=250px">
+  <img src="/docs/logo.png" height=250px width"auto">
 </p>
 
 <hr>
@@ -29,9 +29,6 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 3. In Blender, open **Edit → Preferences → Get Extensions**.
 4. Open the top-right menu and choose **Choose from Disk...** and select the downloaded ZIP.
 5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.
-
-> [!TIP]
-> The compatible `oead` Python wheel is already bundled. You do not need to install the Python package into Blender manually.
 
 ## Your First Import
 
