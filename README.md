@@ -1,7 +1,7 @@
 <div align="center">
 
 <p>
-  <img src="/docs/logo.png" height=250px width"auto">
+  <img src="/docs/logo.png" alt="Odyssey Toolkit" height="250">
 </p>
 
 <hr>
