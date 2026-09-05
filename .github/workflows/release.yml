@@ -18,7 +18,15 @@ env:
   RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
+  quality:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/quality.yml
+    with:
+      source_ref: ${{ inputs.tag || github.ref }}
+
   draft-release:
+    needs: quality
     runs-on: windows-latest
     steps:
       - name: Check out tagged source
