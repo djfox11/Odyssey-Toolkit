@@ -1,0 +1,44 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install quality tools
+        run: python -m pip install ruff
+
+      - name: Compile Python sources
+        run: python -m compileall -q odyssey_toolkit tests tools
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Run conservative Ruff checks
+        run: python -m ruff check odyssey_toolkit tests tools
+
+      - name: Build quality-check archive
+        run: >-
+          python tools/build_package.py
+          --source odyssey_toolkit
+          --archive "$env:RUNNER_TEMP\odyssey_toolkit.zip"
+
+      - name: Validate manifest and package contents
+        run: >-
+          python tools/validate_package.py
+          --source odyssey_toolkit
+          --archive "$env:RUNNER_TEMP\odyssey_toolkit.zip"
