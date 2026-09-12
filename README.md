@@ -30,14 +30,6 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 4. Open the top-right menu and choose **Choose from Disk...** and select the downloaded ZIP.
 5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.
 
-> [!WARNING]
-> Do not download GitHub's automatically generated **Source code (zip)** or
-> **Source code (tar.gz)** archives. They are repository snapshots, not installable
-> Blender extension packages.
-
-> [!TIP]
-> The compatible `oead` Python wheel is already bundled. You do not need to install the Python package into Blender manually.
-
 See the [full installation guide](docs/installation.md) for updates, checksum
 verification and stale-install cleanup.
 
@@ -84,11 +76,3 @@ Please do not attach ROMFS files, extracted game assets, encryption keys, or com
 
 Odyssey Toolkit is distributed under the **GNU General Public License v2.0 or later.**
 See [LICENSE](LICENSE) for the complete terms.
-
----
-
-<div align="center">
-
-*\~Built by djfox11~*
-
-</div>
