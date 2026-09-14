@@ -2,7 +2,13 @@
 
 All notable Odyssey Toolkit releases are documented here.
 
-## Unreleased
+## 0.42.0 - 2026-9-14
+
+### Added
+
+- Grouped stage-import objects into stable source-asset collections beneath their
+  existing category collections, making every occurrence of an asset easier to
+  select and replace from the Outliner.
 
 ### Fixed
 
