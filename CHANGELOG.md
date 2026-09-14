@@ -2,7 +2,7 @@
 
 All notable Odyssey Toolkit releases are documented here.
 
-## Unreleased
+## 0.42.0 - 2026-9-14
 
 ### Added
 
