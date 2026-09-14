@@ -23,6 +23,11 @@ from .performance import (
     timed,
 )
 
+from .collection_layout import (
+    ensure_import_asset_collection,
+    import_asset_collection,
+)
+
 from .placement_classifier import (
     IMPORT_CATEGORY_FILTERS,
     import_filter_group,
@@ -5541,6 +5546,12 @@ class SMO_OT_import_static_models(Operator):
             classified.category,
             self._group_scope,
         )
+        asset_spec = import_asset_collection(placement, resource)
+        asset_collection = ensure_import_asset_collection(
+            group_collection,
+            asset_spec,
+            bpy.data.collections,
+        )
         source_meshes: tuple[bpy.types.Mesh, ...] = ()
         representation = "STATIC_MODEL"
 
@@ -5593,7 +5604,7 @@ class SMO_OT_import_static_models(Operator):
                     source_mesh.get("smo_display_name", source_mesh.name)
                 )
                 obj = bpy.data.objects.new(object_name, source_mesh)
-                group_collection.objects.link(obj)
+                asset_collection.objects.link(obj)
                 obj.parent = self._root
                 _apply_placement_transform(obj, placement)
                 _set_placement_properties(
@@ -5619,7 +5630,7 @@ class SMO_OT_import_static_models(Operator):
                 try:
                     armature_object, bone_names = (
                         self._armature_for_binding(
-                            group_collection,
+                            asset_collection,
                             binding,
                         )
                     )
@@ -5666,7 +5677,7 @@ class SMO_OT_import_static_models(Operator):
                             object_name,
                             source_mesh,
                         )
-                        group_collection.objects.link(obj)
+                        asset_collection.objects.link(obj)
                         created_rig_objects.append(obj)
                         _apply_skin_binding(
                             obj,
@@ -5752,7 +5763,7 @@ class SMO_OT_import_static_models(Operator):
         )
         fallback.empty_display_type = "CUBE"
         fallback.empty_display_size = 0.5
-        group_collection.objects.link(fallback)
+        asset_collection.objects.link(fallback)
         fallback.parent = self._root
         _apply_placement_transform(fallback, placement)
         _set_placement_properties(
