@@ -24,3 +24,7 @@ release-test-output/
 *.pdn
 post.png
 artwork_base.png
+.ruff_cache/
+.pytest_cache/
+smo_kingdom_importer_v*/
+odyssey_toolkit_v*/
