@@ -24,8 +24,8 @@ from .performance import (
 )
 
 from .collection_layout import (
-    ensure_import_asset_collection,
-    import_asset_collection,
+    ensure_import_placement_collection,
+    import_placement_collection,
 )
 
 from .placement_classifier import (
@@ -4654,33 +4654,32 @@ def _preferred_bfres_name(resource: Any) -> str | None:
     return resource.bfres_files[0] if resource.bfres_files else None
 
 
-def _set_placement_properties(
-    obj: bpy.types.Object,
+def _set_placement_collection_properties(
+    collection: bpy.types.Collection,
     classified: Any,
     representation: str,
     fallback_reason: str = "",
 ) -> None:
     placement = classified.placement
     resource = classified.resource
-    obj["smo_static_model_generated"] = True
-    obj["smo_representation"] = representation
-    obj["smo_id"] = placement.identifier
-    obj["smo_unit_config_name"] = placement.unit_config_name
-    obj["smo_parameter_config_name"] = str(
+    collection["smo_representation"] = representation
+    collection["smo_id"] = placement.identifier
+    collection["smo_unit_config_name"] = placement.unit_config_name
+    collection["smo_parameter_config_name"] = str(
         placement.unit_config.get("ParameterConfigName") or ""
     )
-    obj["smo_model_name"] = placement.model_name or ""
-    obj["smo_import_category"] = classified.category.value
-    obj["smo_stage_layer"] = placement.stage_layer
-    obj["smo_source_stage_name"] = placement.source_stage_name
-    obj["smo_synthesised_sky"] = bool(
+    collection["smo_model_name"] = placement.model_name or ""
+    collection["smo_import_category"] = classified.category.value
+    collection["smo_stage_layer"] = placement.stage_layer
+    collection["smo_source_stage_name"] = placement.source_stage_name
+    collection["smo_synthesised_sky"] = bool(
         placement.raw.get("SMOSynthesised", False)
     )
-    obj["smo_zone_path"] = json.dumps(placement.zone_path)
-    obj["smo_resource_source_field"] = resource.source_field or ""
-    obj["smo_resource_archive"] = str(resource.archive_path or "")
-    obj["smo_bfres_files"] = json.dumps(resource.bfres_files)
-    obj["smo_resource_components"] = json.dumps(
+    collection["smo_zone_path"] = json.dumps(placement.zone_path)
+    collection["smo_resource_source_field"] = resource.source_field or ""
+    collection["smo_resource_archive"] = str(resource.archive_path or "")
+    collection["smo_bfres_files"] = json.dumps(resource.bfres_files)
+    collection["smo_resource_components"] = json.dumps(
         [
             {
                 "archive": str(component.archive_path or ""),
@@ -4691,15 +4690,28 @@ def _set_placement_properties(
         ],
         sort_keys=True,
     )
-    obj["smo_fallback_reason"] = fallback_reason
+    collection["smo_fallback_reason"] = fallback_reason
+    collection["smo_procedural_ocean"] = (
+        representation == "PROCEDURAL_OCEAN"
+    )
 
     if fallback_reason:
         assessment = classified.model_expectation
-        obj["smo_model_expectation"] = assessment.expectation.value
-        obj["smo_model_expectation_confidence"] = assessment.confidence
-        obj["smo_model_expectation_reasons"] = json.dumps(
+        collection["smo_model_expectation"] = assessment.expectation.value
+        collection["smo_model_expectation_confidence"] = (
+            assessment.confidence
+        )
+        collection["smo_model_expectation_reasons"] = json.dumps(
             assessment.reasons
         )
+    else:
+        for property_name in (
+            "smo_model_expectation",
+            "smo_model_expectation_confidence",
+            "smo_model_expectation_reasons",
+        ):
+            if property_name in collection:
+                del collection[property_name]
 
 
 def _fallback_reason(
@@ -5546,10 +5558,10 @@ class SMO_OT_import_static_models(Operator):
             classified.category,
             self._group_scope,
         )
-        asset_spec = import_asset_collection(placement, resource)
-        asset_collection = ensure_import_asset_collection(
+        placement_spec = import_placement_collection(placement)
+        placement_collection = ensure_import_placement_collection(
             group_collection,
-            asset_spec,
+            placement_spec,
             bpy.data.collections,
         )
         source_meshes: tuple[bpy.types.Mesh, ...] = ()
@@ -5598,29 +5610,22 @@ class SMO_OT_import_static_models(Operator):
 
             def create_static_object(
                 source_mesh: bpy.types.Mesh,
-                object_representation: str,
             ) -> bpy.types.Object:
                 object_name = str(
                     source_mesh.get("smo_display_name", source_mesh.name)
                 )
                 obj = bpy.data.objects.new(object_name, source_mesh)
-                asset_collection.objects.link(obj)
+                placement_collection.objects.link(obj)
                 obj.parent = self._root
                 _apply_placement_transform(obj, placement)
-                _set_placement_properties(
-                    obj,
-                    classified,
-                    object_representation,
-                )
-                obj["smo_procedural_ocean"] = (
-                    object_representation == "PROCEDURAL_OCEAN"
-                )
+                obj["smo_static_model_generated"] = True
                 self._mesh_object_count += 1
                 return obj
 
             for source_mesh in static_meshes:
-                create_static_object(source_mesh, representation)
+                create_static_object(source_mesh)
 
+            placement_representation = representation
             for binding, rig_meshes in rig_groups.values():
                 created_rig_objects = []
                 successful_rig_objects = []
@@ -5630,7 +5635,7 @@ class SMO_OT_import_static_models(Operator):
                 try:
                     armature_object, bone_names = (
                         self._armature_for_binding(
-                            asset_collection,
+                            placement_collection,
                             binding,
                         )
                     )
@@ -5644,11 +5649,7 @@ class SMO_OT_import_static_models(Operator):
                         if representation == "COMPOSITE_MODEL"
                         else "RIGGED_MODEL"
                     )
-                    _set_placement_properties(
-                        armature_object,
-                        classified,
-                        rig_representation,
-                    )
+                    armature_object["smo_static_model_generated"] = True
                     armature_object["smo_armature_generated"] = True
                     armature_object["smo_rig_key"] = binding.rig_key
                     if binding.source_archive is not None:
@@ -5677,7 +5678,7 @@ class SMO_OT_import_static_models(Operator):
                             object_name,
                             source_mesh,
                         )
-                        asset_collection.objects.link(obj)
+                        placement_collection.objects.link(obj)
                         created_rig_objects.append(obj)
                         _apply_skin_binding(
                             obj,
@@ -5685,15 +5686,11 @@ class SMO_OT_import_static_models(Operator):
                             rig_bindings[source_mesh.name],
                             bone_names,
                         )
-                        _set_placement_properties(
-                            obj,
-                            classified,
-                            rig_representation,
-                        )
-                        obj["smo_procedural_ocean"] = False
+                        obj["smo_static_model_generated"] = True
                         successful_rig_objects.append(obj)
                         self._mesh_object_count += 1
                         self._rigged_mesh_object_count += 1
+                    placement_representation = rig_representation
                 except Exception as exc:
                     first_rig_error = (
                         binding.rig_key not in self._rig_errors
@@ -5744,12 +5741,17 @@ class SMO_OT_import_static_models(Operator):
                         )
 
                     for source_mesh in rig_meshes:
-                        create_static_object(source_mesh, representation)
+                        create_static_object(source_mesh)
 
             if representation == "PROCEDURAL_OCEAN":
                 self._procedural_ocean_count += 1
             else:
                 self._model_placement_count += 1
+            _set_placement_collection_properties(
+                placement_collection,
+                classified,
+                placement_representation,
+            )
             return
 
         bfres_name = _preferred_bfres_name(resource)
@@ -5763,11 +5765,12 @@ class SMO_OT_import_static_models(Operator):
         )
         fallback.empty_display_type = "CUBE"
         fallback.empty_display_size = 0.5
-        asset_collection.objects.link(fallback)
+        placement_collection.objects.link(fallback)
         fallback.parent = self._root
         _apply_placement_transform(fallback, placement)
-        _set_placement_properties(
-            fallback,
+        fallback["smo_static_model_generated"] = True
+        _set_placement_collection_properties(
+            placement_collection,
             classified,
             "CUBE_FALLBACK",
             _fallback_reason(
