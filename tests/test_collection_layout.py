@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from types import SimpleNamespace
 import unittest
 
@@ -34,128 +33,87 @@ class FakeCollections:
 
 def placement(
     *,
-    identifier: str = "Obj2183",
-    unit_config_name: str = "CapFlower",
+    identifier: str = "2183",
+    unit_config_name: str = "CapFlowerBloom",
     model_name: str | None = None,
+    source_stage_name: str = "PeachWorldHomeStage",
+    stage_layer: str = "Common",
+    zone_path: tuple[str, ...] = (),
 ) -> object:
     return SimpleNamespace(
         identifier=identifier,
         unit_config_name=unit_config_name,
         model_name=model_name,
+        source_stage_name=source_stage_name,
+        stage_layer=stage_layer,
+        zone_path=zone_path,
     )
 
 
-def resource(
-    requested_name: str | None,
-    archive_name: str | None,
-    *bfres_files: str,
-    components: tuple[object, ...] = (),
-) -> object:
-    return SimpleNamespace(
-        requested_name=requested_name,
-        archive_path=(
-            Path("D:/romfs/ObjectData") / archive_name
-            if archive_name is not None
-            else None
-        ),
-        bfres_files=bfres_files,
-        components=components,
-    )
-
-
-class ImportAssetCollectionTests(unittest.TestCase):
-    def test_resolved_asset_groups_every_placement_under_requested_name(
-        self,
-    ) -> None:
-        resolved = resource(
-            "CapFlowerBloom",
-            "CapFlowerBloom.szs",
-            "CapFlowerBloom.bfres",
-        )
-        first = collection_layout.import_asset_collection(
-            placement(identifier="Obj2183"),
-            resolved,
-        )
-        second = collection_layout.import_asset_collection(
-            placement(identifier="Obj9217"),
-            resolved,
+class ImportPlacementCollectionTests(unittest.TestCase):
+    def test_collection_is_named_for_the_individual_placement(self) -> None:
+        specification = collection_layout.import_placement_collection(
+            placement(),
         )
 
-        self.assertEqual(first.label, "CapFlowerBloom")
+        self.assertEqual(specification.label, "[2183] CapFlowerBloom")
+        self.assertTrue(specification.key.startswith("PLACEMENT:"))
+
+    def test_two_instances_of_one_asset_get_distinct_collections(self) -> None:
+        first = collection_layout.import_placement_collection(
+            placement(identifier="2183"),
+        )
+        second = collection_layout.import_placement_collection(
+            placement(identifier="9217"),
+        )
+
+        self.assertNotEqual(first.key, second.key)
+        self.assertEqual(first.label, "[2183] CapFlowerBloom")
+        self.assertEqual(second.label, "[9217] CapFlowerBloom")
+
+    def test_same_placement_reuses_its_stable_collection(self) -> None:
+        first = collection_layout.import_placement_collection(placement())
+        second = collection_layout.import_placement_collection(placement())
+
         self.assertEqual(first, second)
-        self.assertTrue(first.key.startswith("ASSET:"))
 
-    def test_different_source_models_do_not_share_a_collection(self) -> None:
-        first = collection_layout.import_asset_collection(
-            placement(),
-            resource("Fixture", "Fixture.szs", "ModelA.bfres"),
+    def test_placement_context_prevents_identifier_collisions(self) -> None:
+        first = collection_layout.import_placement_collection(
+            placement(source_stage_name="MainStage"),
         )
-        second = collection_layout.import_asset_collection(
-            placement(),
-            resource("Fixture", "Fixture.szs", "ModelB.bfres"),
+        second = collection_layout.import_placement_collection(
+            placement(
+                source_stage_name="SubZoneStage",
+                zone_path=("SubZoneStage",),
+            ),
         )
 
         self.assertNotEqual(first.key, second.key)
 
-    def test_composite_identity_is_independent_of_component_order(self) -> None:
-        body = resource("GunetterBody", "GunetterBody.szs", "Body.bfres")
-        head = resource("GunetterHead", "GunetterHead.szs", "Head.bfres")
-        first = resource(
-            "Gunetter",
-            "GunetterBody.szs",
-            "Body.bfres",
-            components=(body, head),
-        )
-        reordered = resource(
-            "Gunetter",
-            "GunetterBody.szs",
-            "Body.bfres",
-            components=(head, body),
+    def test_missing_unit_name_falls_back_to_model_name(self) -> None:
+        specification = collection_layout.import_placement_collection(
+            placement(unit_config_name="", model_name="KnownModel"),
         )
 
-        first_spec = collection_layout.import_asset_collection(
-            placement(unit_config_name="Gunetter"),
-            first,
-        )
-        second_spec = collection_layout.import_asset_collection(
-            placement(unit_config_name="Gunetter"),
-            reordered,
-        )
-
-        self.assertEqual(first_spec.label, "Gunetter")
-        self.assertEqual(first_spec, second_spec)
-
-    def test_unresolved_placements_fall_back_to_game_object_name(self) -> None:
-        unresolved = resource(None, None)
-        by_model = collection_layout.import_asset_collection(
-            placement(model_name="KnownModel"),
-            unresolved,
-        )
-        by_unit = collection_layout.import_asset_collection(
-            placement(unit_config_name="MysteryActor"),
-            unresolved,
-        )
-
-        self.assertEqual(by_model.label, "KnownModel")
-        self.assertEqual(by_unit.label, "MysteryActor")
+        self.assertEqual(specification.label, "[2183] KnownModel")
 
     def test_collection_is_created_marked_and_reused_by_stable_key(
         self,
     ) -> None:
         parent = FakeCollection("Gameplay")
         collections = FakeCollections()
-        specification = collection_layout.ImportAssetCollection(
-            label="CapFlowerBloom",
-            key="ASSET:fixture",
+        specification = collection_layout.ImportPlacementCollection(
+            label="[2183] CapFlowerBloom",
+            key="PLACEMENT:fixture",
         )
 
-        created = collection_layout.ensure_import_asset_collection(
+        created = collection_layout.ensure_import_placement_collection(
             parent,
             specification,
             collections,
         )
         created.name = "Renamed by user"
-        reused = collection_layout.ensure_import_asset_collection(
+        reused = collection_layout.ensure_import_placement_collection(
             parent,
             specification,
             collections,
@@ -164,13 +122,16 @@ class ImportAssetCollectionTests(unittest.TestCase):
         self.assertIs(created, reused)
         self.assertEqual(collections.created, [created])
         self.assertEqual(parent.children, [created])
-        self.assertEqual(created.name, "CapFlowerBloom")
+        self.assertEqual(created.name, "[2183] CapFlowerBloom")
         self.assertTrue(created["smo_import_generated"])
-        self.assertTrue(created["smo_import_asset"])
-        self.assertEqual(created["smo_import_asset_key"], "ASSET:fixture")
+        self.assertTrue(created["smo_import_placement"])
         self.assertEqual(
-            created["smo_import_asset_name"],
-            "CapFlowerBloom",
+            created["smo_import_placement_key"],
+            "PLACEMENT:fixture",
+        )
+        self.assertEqual(
+            created["smo_import_placement_name"],
+            "[2183] CapFlowerBloom",
         )
 
 
