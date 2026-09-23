@@ -11,8 +11,6 @@ BFRES_ANIMATION_INVENTORY.md
 classification_app/
 resolution_audit/
 smo_kingdom_importer_v0.36.3/
-
-# Local research and legacy authoring artifacts
 Guide.docx
 ShineTowerTotalCount_21.png
 trees.txt
@@ -28,3 +26,5 @@ artwork_base.png
 .pytest_cache/
 smo_kingdom_importer_v*/
 odyssey_toolkit_v*/
+
+/tests/
