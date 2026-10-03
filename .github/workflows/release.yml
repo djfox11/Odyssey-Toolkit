@@ -48,15 +48,24 @@ jobs:
           }
           "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Package extension and checksum
+      - name: Build extension package
+        shell: pwsh
+        run: >-
+          python tools/build_package.py
+          --source odyssey_toolkit
+          --archive "odyssey_toolkit_v$env:VERSION.zip"
+
+      - name: Validate release package
+        shell: pwsh
+        run: >-
+          python tools/validate_package.py
+          --source odyssey_toolkit
+          --archive "odyssey_toolkit_v$env:VERSION.zip"
+
+      - name: Write checksum
         shell: pwsh
         run: |
-          $stage = Join-Path $env:RUNNER_TEMP "odyssey_toolkit"
-          New-Item -ItemType Directory -Path $stage -Force | Out-Null
-          Copy-Item -Path "odyssey_toolkit\*" -Destination $stage -Recurse -Force
-          Copy-Item -LiteralPath "LICENSE", "CHANGELOG.md" -Destination $stage
           $archive = Join-Path $PWD "odyssey_toolkit_v$env:VERSION.zip"
-          Compress-Archive -Path "$stage\*" -DestinationPath $archive -CompressionLevel Optimal
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash.ToLowerInvariant()
           "$hash  odyssey_toolkit_v$env:VERSION.zip" | Set-Content -Encoding ascii SHA256SUMS.txt
 

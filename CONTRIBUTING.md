@@ -36,9 +36,37 @@ When contributing code:
 
 ## Testing
 
+### Automated checks
+
+The unit tests, Ruff checks and package validation run in CI on every pull
+request. They need Python 3.11, the version bundled with Blender 4.5; older
+Python versions cannot import the add-on modules. Blender's own interpreter
+works and already includes `numpy`:
+
+```text
+Windows: "C:\Program Files\Blender Foundation\Blender 4.5\4.5\python\bin\python.exe"
+macOS:   /Applications/Blender.app/Contents/Resources/4.5/python/bin/python3.11
+```
+
+From the repository root, run:
+
+```shell
+python -m unittest discover -s tests
+python -m ruff check odyssey_toolkit tests tools
+python tools/build_package.py --source odyssey_toolkit --archive dist/odyssey_toolkit.zip
+python tools/validate_package.py --source odyssey_toolkit --archive dist/odyssey_toolkit.zip
+```
+
+Replace `python` with the interpreter path above if Python 3.11 is not on your
+`PATH`. Ruff can be installed with `python -m pip install ruff`.
+
+### Manual testing
+
 Before opening a pull request, test the relevant workflow using legally obtained game data.
 
-For importer changes, test more than one stage or asset where practical.
+For importer changes, test more than one stage or asset where practical. For
+changes that could affect generated output or import time, compare against the
+baseline in the [manual regression checklist](docs/regression-testing.md).
 
 Check Blender's console and Odyssey Toolkit diagnostics for unexpected errors.
 

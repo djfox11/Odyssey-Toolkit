@@ -2,7 +2,7 @@
 
 All notable Odyssey Toolkit releases are documented here.
 
-## 0.42.1 - 2026-9-19
+## 0.42.1 - 2026-09-19
 
 ### Fixed
 
@@ -10,7 +10,7 @@ All notable Odyssey Toolkit releases are documented here.
   store shared placement metadata on that collection instead of duplicating it
   across every generated mesh object.
 
-## 0.42.0 - 2026-9-14
+## 0.42.0 - 2026-09-14
 
 ### Added
 

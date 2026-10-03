@@ -6,6 +6,8 @@ name = "Odyssey Toolkit"
 tagline = "Import and inspect Odyssey stages, assets, and animations"
 maintainer = "djfox11"
 type = "add-on"
+website = "https://github.com/djfox11/Odyssey-Toolkit"
+tags = ["Import-Export"]
 
 platforms = ["windows-x64"]
 wheels = [
