@@ -36,7 +36,8 @@ body:
     id: toolkit-version
     attributes:
       label: Odyssey Toolkit version
-      placeholder: "0.40.0"
+      description: Shown in Edit > Preferences > Get Extensions > Installed.
+      placeholder: "0.42.1"
     validations:
       required: true
 

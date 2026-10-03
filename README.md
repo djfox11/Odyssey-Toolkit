@@ -27,7 +27,7 @@ Odyssey Toolkit is a Blender extension for reconstructing and inspecting content
 1. Open the repo's **[Releases](https://github.com/djfox11/Odyssey-Toolkit/releases)** page.
 2. Under **Assets**, download the attached ZIP named `odyssey_toolkit_v0.xx.x.zip`.
 3. In Blender, open **Edit → Preferences → Get Extensions**.
-4. Open the top-right menu and choose **Choose from Disk...** and select the downloaded ZIP.
+4. Open the top-right menu and choose **Install from Disk...** and select the downloaded ZIP.
 5. In the 3D Viewport, press <kbd>N</kbd> and open the **Odyssey** tab.
 
 See the [full installation guide](docs/installation.md) for updates, checksum

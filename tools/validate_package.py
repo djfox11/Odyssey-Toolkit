@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 from pathlib import Path, PurePosixPath
 import re
 import tomllib
@@ -95,6 +96,47 @@ def load_manifest(path: Path) -> dict[str, object]:
     return manifest
 
 
+def validate_bl_info_version(
+    source: Path,
+    manifest: dict[str, object],
+) -> None:
+    init_path = source / "__init__.py"
+
+    try:
+        module = ast.parse(init_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, SyntaxError) as exc:
+        raise ValueError(f"could not parse {init_path}: {exc}") from exc
+
+    bl_info = next(
+        (
+            node.value
+            for node in module.body
+            if isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "bl_info"
+                for target in node.targets
+            )
+        ),
+        None,
+    )
+
+    if bl_info is None:
+        return
+
+    try:
+        version = ast.literal_eval(bl_info)["version"]
+    except (ValueError, KeyError, TypeError) as exc:
+        raise ValueError("bl_info must be a literal with a 'version' tuple") from exc
+
+    bl_info_version = ".".join(str(part) for part in version)
+
+    if bl_info_version != manifest["version"]:
+        raise ValueError(
+            f"bl_info version {bl_info_version} does not match manifest "
+            f"version {manifest['version']}"
+        )
+
+
 def manifest_wheel_paths(
     source: Path,
     manifest: dict[str, object],
@@ -182,6 +224,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     manifest = load_manifest(args.source / MANIFEST_NAME)
+    validate_bl_info_version(args.source, manifest)
     manifest_wheel_paths(args.source, manifest)
     validate_archive(args.archive, manifest)
     print(f"Validated manifest and package: {args.archive}")

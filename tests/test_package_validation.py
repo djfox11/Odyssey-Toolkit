@@ -37,6 +37,38 @@ class PackageValidationTests(unittest.TestCase):
 
             validate_package.validate_archive(archive_path, manifest)
 
+    def test_repository_bl_info_matches_manifest(self) -> None:
+        source = ROOT / "odyssey_toolkit"
+        manifest = validate_package.load_manifest(
+            source / validate_package.MANIFEST_NAME
+        )
+
+        validate_package.validate_bl_info_version(source, manifest)
+
+    def test_mismatched_bl_info_version_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory)
+            (source / "__init__.py").write_text(
+                'bl_info = {"name": "Test", "version": (1, 2, 3)}\n',
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "does not match"):
+                validate_package.validate_bl_info_version(
+                    source,
+                    {"version": "1.2.4"},
+                )
+
+    def test_missing_bl_info_is_allowed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory)
+            (source / "__init__.py").write_text("", encoding="utf-8")
+
+            validate_package.validate_bl_info_version(
+                source,
+                {"version": "1.2.3"},
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
